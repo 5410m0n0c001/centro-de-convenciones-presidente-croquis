@@ -357,6 +357,14 @@ function handleElementMoved(elem) {
 
 /* --- GESTIÓN DE CONFIGURACIÓN Y CONTROLES GENERALES --- */
 function setupControlListeners() {
+  const btnSaveLayout = document.getElementById("btn-save-layout");
+  if (btnSaveLayout) {
+    btnSaveLayout.addEventListener("click", () => {
+      localStorage.setItem("cc_presidente_layout", JSON.stringify(state.elements));
+      showToast("¡Proyecto guardado! (Usa 'Exportar' para guardarlo como archivo)");
+    });
+  }
+
   document.getElementById("btn-clear-layout").addEventListener("click", () => {
     if (confirm("¿Seguro que deseas limpiar todo el plano? Se borrarán todos los stands y muebles.")) {
       state.elements = [];
