@@ -425,7 +425,8 @@ function createStatic3DStructures() {
   const stageG = new THREE.Group();
   stageG.position.set(stg.x, 0.05, stg.y);
   
-  const stageMeshGeom = new THREE.CylinderGeometry(stg.radiusX, stg.radiusX, stg.heightZ, 32, 1, false, 0, Math.PI);
+  // Usar thetaStart = -Math.PI / 2 para que la media luna se dibuje de izquierda a derecha en el lado del salón (Z positivo)
+  const stageMeshGeom = new THREE.CylinderGeometry(stg.radiusX, stg.radiusX, stg.heightZ, 32, 1, false, -Math.PI / 2, Math.PI);
   const stageMeshMat = new THREE.MeshStandardMaterial({
     color: isBw ? 0xffffff : (isCadD ? 0xff00ff : 0x5c3d2e),
     roughness: 0.5
@@ -444,7 +445,7 @@ function createStatic3DStructures() {
   stageG.add(stageMesh);
   
   if (!isBw && !isCadD && !isCadL) {
-    const ledGeom = new THREE.CylinderGeometry(stg.radiusX + 0.02, stg.radiusX + 0.02, 0.06, 32, 1, true, 0, Math.PI);
+    const ledGeom = new THREE.CylinderGeometry(stg.radiusX + 0.02, stg.radiusX + 0.02, 0.06, 32, 1, true, -Math.PI / 2, Math.PI);
     const ledMat = new THREE.MeshBasicMaterial({ color: 0xc084fc, side: THREE.DoubleSide });
     const led = new THREE.Mesh(ledGeom, ledMat);
     led.scale.set(1.0, 1.0, stg.radiusY / stg.radiusX);
