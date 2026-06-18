@@ -296,7 +296,12 @@
 
       <div class="form-group">
         <label for="prop-rotation">Rotación (Grados)</label>
-        <input type="number" id="prop-rotation" class="form-input" min="0" max="360" step="15" value="0">
+        <div style="display: flex; gap: 8px;">
+          <input type="number" id="prop-rotation" class="form-input" min="0" max="360" step="15" value="0" style="flex: 1; min-width: 0;">
+          <button type="button" class="btn-secondary" id="btn-rotate-90" style="padding: 0 10px; height: 38px; min-width: 80px; margin-top: 0; white-space: nowrap; font-size: 13px; display: flex; align-items: center; justify-content: center; gap: 4px;">
+            <i class="fa-solid fa-rotate-right"></i> +90°
+          </button>
+        </div>
       </div>
 
       <div class="form-group" id="group-prop-shape" style="display: none;">

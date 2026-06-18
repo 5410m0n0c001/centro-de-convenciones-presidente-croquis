@@ -137,6 +137,38 @@ function setupUI() {
       btn.addEventListener("click", toggleSidebar);
     });
   }
+
+  // Keyboard Shortcuts (R to rotate, Delete/Backspace to delete)
+  document.addEventListener("keydown", (e) => {
+    // Avoid triggering shortcuts when typing inside form fields
+    const activeEl = document.activeElement;
+    if (activeEl && (activeEl.tagName === "INPUT" || activeEl.tagName === "TEXTAREA" || activeEl.tagName === "SELECT")) {
+      return;
+    }
+    
+    if (e.key === "r" || e.key === "R") {
+      if (state.selectedElement) {
+        const currentRot = state.selectedElement.rotation || 0;
+        const newRot = (currentRot + 90) % 360;
+        
+        state.selectedElement.rotation = newRot;
+        const index = state.elements.findIndex(elem => elem.id === state.selectedElement.id);
+        if (index !== -1) {
+          state.elements[index].rotation = newRot;
+        }
+        
+        const propRotInput = document.getElementById("prop-rotation");
+        if (propRotInput) propRotInput.value = newRot;
+        
+        syncAllViews();
+        showToast(`Elemento rotado a ${newRot}°`);
+      }
+    } else if (e.key === "Delete" || e.key === "Backspace") {
+      if (state.selectedElement) {
+        deleteElement();
+      }
+    }
+  });
 }
 
 /* --- CARGAR TEMPLATES EN LA CAJA DE HERRAMIENTAS --- */
@@ -440,6 +472,19 @@ function setupInspectorListeners() {
   document.getElementById("prop-w").addEventListener("change", (e) => updateProp("w", parseFloat(parseFloat(e.target.value).toFixed(2))));
   document.getElementById("prop-h").addEventListener("change", (e) => updateProp("h", parseFloat(parseFloat(e.target.value).toFixed(2))));
   document.getElementById("prop-rotation").addEventListener("change", (e) => updateProp("rotation", parseInt(e.target.value)));
+
+  const btnRotate90 = document.getElementById("btn-rotate-90");
+  if (btnRotate90) {
+    btnRotate90.addEventListener("click", () => {
+      if (!state.selectedElement) return;
+      const currentRot = state.selectedElement.rotation || 0;
+      const newRot = (currentRot + 90) % 360;
+      updateProp("rotation", newRot);
+      const propRotInput = document.getElementById("prop-rotation");
+      if (propRotInput) propRotInput.value = newRot;
+      showToast(`Rotado a ${newRot}°`);
+    });
+  }
 
   const shapeSelect = document.getElementById("prop-shape");
   if (shapeSelect) {

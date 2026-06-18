@@ -437,6 +437,16 @@ function renderLounge(group, elem) {
   table.setAttribute("fill", "#ffffff");
   table.setAttribute("rx", "1");
   group.appendChild(table);
+
+  const label = document.createElementNS("http://www.w3.org/2000/svg", "text");
+  label.setAttribute("x", "0");
+  label.setAttribute("y", "2.5");
+  label.setAttribute("font-size", "7");
+  label.setAttribute("fill", elem.color || "#be185d");
+  label.setAttribute("font-weight", "800");
+  label.setAttribute("text-anchor", "middle");
+  label.textContent = (elem.name || "LOUNGE").toUpperCase();
+  group.appendChild(label);
 }
 
 function renderGiantLetters(group, elem) {
@@ -481,6 +491,16 @@ function renderMirror(group, elem) {
   frame.setAttribute("stroke", elem.color || "#d4af37");
   frame.setAttribute("stroke-width", "2");
   group.appendChild(frame);
+
+  const label = document.createElementNS("http://www.w3.org/2000/svg", "text");
+  label.setAttribute("x", "0");
+  label.setAttribute("y", "3");
+  label.setAttribute("font-size", "8");
+  label.setAttribute("fill", "#ffffff");
+  label.setAttribute("font-weight", "700");
+  label.setAttribute("text-anchor", "middle");
+  label.textContent = (elem.name || "ESPEJO").toUpperCase();
+  group.appendChild(label);
 }
 
 function renderPhotobooth(group, elem) {
@@ -505,7 +525,7 @@ function renderPhotobooth(group, elem) {
   label.setAttribute("fill", "#ffffff");
   label.setAttribute("font-weight", "700");
   label.setAttribute("text-anchor", "middle");
-  label.textContent = "FOTO";
+  label.textContent = (elem.name || "FOTO").toUpperCase();
   group.appendChild(label);
 }
 
@@ -523,6 +543,16 @@ function renderDJ(group, elem) {
   consoleRect.setAttribute("stroke-width", "1.5");
   consoleRect.setAttribute("rx", "2");
   group.appendChild(consoleRect);
+
+  const label = document.createElementNS("http://www.w3.org/2000/svg", "text");
+  label.setAttribute("x", "0");
+  label.setAttribute("y", "3");
+  label.setAttribute("font-size", "8");
+  label.setAttribute("fill", "#ffffff");
+  label.setAttribute("font-weight", "700");
+  label.setAttribute("text-anchor", "middle");
+  label.textContent = (elem.name || "DJ").toUpperCase();
+  group.appendChild(label);
 }
 
 function renderShrub(group, elem) {
