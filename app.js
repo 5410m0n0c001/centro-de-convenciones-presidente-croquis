@@ -18,41 +18,56 @@ const state = {
   currentTheme: "premium"
 };
 
-document.addEventListener("DOMContentLoaded", () => {
-  // 1. Cargar datos iniciales (desde LocalStorage o desde elements.js)
+document.addEventListener("DOMContentLoaded", async () => {
+  // 1. Cargar datos iniciales (desde LocalStorage, archivo layout.json o elements.js)
   const savedLayout = localStorage.getItem("cc_presidente_layout");
+  
+  const loadDefaultLayout = async () => {
+    try {
+      const response = await fetch("layout.json");
+      if (response.ok) {
+        state.elements = await response.json();
+      } else {
+        state.elements = JSON.parse(JSON.stringify(INITIAL_ELEMENTS));
+      }
+    } catch (e) {
+      state.elements = JSON.parse(JSON.stringify(INITIAL_ELEMENTS));
+    }
+  };
+
   if (savedLayout) {
     try {
       state.elements = JSON.parse(savedLayout);
-      // Migración/Compatibilidad: Agregar elementos por defecto que falten (puertas y estructuras principales)
-      let hasModified = false;
-      const idsToCheck = ["salon-main", "garden-main", "entrance-main", "bathroom-left", "bathroom-right", "stage-main"];
-      
-      if (!state.elements.some(e => e.type === "door")) {
-        const defaultDoors = INITIAL_ELEMENTS.filter(e => e.type === "door");
-        state.elements = [...state.elements, ...JSON.parse(JSON.stringify(defaultDoors))];
-        hasModified = true;
-      }
-      
-      idsToCheck.forEach(id => {
-        if (!state.elements.some(e => e.id === id)) {
-          const defaultElem = INITIAL_ELEMENTS.find(e => e.id === id);
-          if (defaultElem) {
-            state.elements.push(JSON.parse(JSON.stringify(defaultElem)));
-            hasModified = true;
-          }
-        }
-      });
-
-      if (hasModified) {
-        localStorage.setItem("cc_presidente_layout", JSON.stringify(state.elements));
-      }
     } catch (e) {
-      console.error("Error al cargar distribución guardada. Usando valores iniciales.", e);
-      state.elements = JSON.parse(JSON.stringify(INITIAL_ELEMENTS));
+      console.error("Error al cargar distribución guardada de localStorage. Cargando por defecto...", e);
+      await loadDefaultLayout();
     }
   } else {
-    state.elements = JSON.parse(JSON.stringify(INITIAL_ELEMENTS));
+    await loadDefaultLayout();
+  }
+
+  // Migración/Compatibilidad: Agregar elementos por defecto que falten (puertas y estructuras principales)
+  let hasModified = false;
+  const idsToCheck = ["salon-main", "garden-main", "entrance-main", "bathroom-left", "bathroom-right", "stage-main"];
+  
+  if (!state.elements.some(e => e.type === "door")) {
+    const defaultDoors = INITIAL_ELEMENTS.filter(e => e.type === "door");
+    state.elements = [...state.elements, ...JSON.parse(JSON.stringify(defaultDoors))];
+    hasModified = true;
+  }
+  
+  idsToCheck.forEach(id => {
+    if (!state.elements.some(e => e.id === id)) {
+      const defaultElem = INITIAL_ELEMENTS.find(e => e.id === id);
+      if (defaultElem) {
+        state.elements.push(JSON.parse(JSON.stringify(defaultElem)));
+        hasModified = true;
+      }
+    }
+  });
+
+  if (hasModified) {
+    localStorage.setItem("cc_presidente_layout", JSON.stringify(state.elements));
   }
 
   // 2. Inicializar interfaces del HUD y paneles
