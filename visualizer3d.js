@@ -376,12 +376,12 @@ function createStatic3DStructures() {
     }
   }
 
-  // E) Baños WC exteriores (alto=3m) con letrero WC
+  // E) Baños WC exteriores (alto=6m, igualando la altura de la construcción) con letrero WC
   STATIC_STRUCTURES.bathrooms.forEach(bath => {
     const wcG = new THREE.Group();
     wcG.position.set(bath.x + bath.w/2, 0, bath.y + bath.h/2);
     
-    const wH = 3.0;
+    const wH = 6.0; // Altura de 6m para igualar la del salón
     const wcWallMat = new THREE.MeshStandardMaterial({
       color: isBw ? 0x000000 : (isCadL ? 0x64748b : (isCadD ? 0x00ffff : 0x475569)),
       roughness: 0.6
@@ -414,7 +414,9 @@ function createStatic3DStructures() {
       const texture = new THREE.CanvasTexture(canvas);
       const signMat = new THREE.MeshBasicMaterial({ map: texture, side: THREE.DoubleSide });
       const signPlane = new THREE.Mesh(new THREE.PlaneGeometry(1.2, 0.6), signMat);
-      signPlane.position.set(0, 2.0, bath.h / 2 + 0.01);
+      
+      // Colocado en el frente del baño (z = bath.h / 2 + 0.01) y a y=4.5m de altura (centrado verticalmente en los 6m)
+      signPlane.position.set(0, 4.5, bath.h / 2 + 0.01);
       wcG.add(signPlane);
     }
     scene.add(wcG);
