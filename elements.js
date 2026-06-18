@@ -85,16 +85,8 @@ export const STATIC_STRUCTURES = {
     }
   },
 
-  // Puertas de acceso (e1 a e7) exactamente como en el dibujo
-  doors: [
-    { id: "e1", name: "E1", x: 46.0, y: 22.0, w: 2.0, angle: 270, side: "right" },
-    { id: "e2", name: "E2 (Rampa)", x: 46.0, y: 56.0, w: 4.0, angle: 270, side: "right" },
-    { id: "e3", name: "E3", x: 38.0, y: 70.0, w: 2.0, angle: 180, side: "bottom" },
-    { id: "e4", name: "E4", x: 28.0, y: 70.0, w: 2.0, angle: 180, side: "bottom" },
-    { id: "e5", name: "E5", x: 18.0, y: 70.0, w: 2.0, angle: 180, side: "bottom" },
-    { id: "e6", name: "E6", x: 10.0, y: 54.0, w: 2.0, angle: 90, side: "left" },
-    { id: "e7", name: "E7", x: 10.0, y: 22.0, w: 2.0, angle: 90, side: "left" }
-  ]
+  // Puertas de acceso (e1 a e7) ahora dinámicas
+  doors: []
 };
 
 // Elementos iniciales de muestra
@@ -158,7 +150,14 @@ export const INITIAL_ELEMENTS = [
     removable: true
   },
   { id: "table-1", type: "table", name: "Mesa 1", x: 18.0, y: 48.0, w: 1.6, h: 1.6, shape: "circle", rotation: 0, chairs: 10, color: "#b45309", editable: true, removable: true },
-  { id: "table-2", type: "table", name: "Mesa 2", x: 38.0, y: 48.0, w: 1.6, h: 1.6, shape: "circle", rotation: 0, chairs: 10, color: "#b45309", editable: true, removable: true }
+  { id: "table-2", type: "table", name: "Mesa 2", x: 38.0, y: 48.0, w: 1.6, h: 1.6, shape: "circle", rotation: 0, chairs: 10, color: "#b45309", editable: true, removable: true },
+  { id: "e1", type: "door", name: "E1", x: 46.0, y: 22.0, w: 2.0, h: 0.3, shape: "rectangle", rotation: 270, color: "#d4af37", editable: true, removable: true },
+  { id: "e2", type: "door", name: "E2 (Rampa)", x: 46.0, y: 56.0, w: 4.0, h: 0.3, shape: "rectangle", rotation: 270, color: "#d4af37", editable: true, removable: true },
+  { id: "e3", type: "door", name: "E3", x: 38.0, y: 70.0, w: 2.0, h: 0.3, shape: "rectangle", rotation: 180, color: "#d4af37", editable: true, removable: true },
+  { id: "e4", type: "door", name: "E4", x: 28.0, y: 70.0, w: 2.0, h: 0.3, shape: "rectangle", rotation: 180, color: "#d4af37", editable: true, removable: true },
+  { id: "e5", type: "door", name: "E5", x: 18.0, y: 70.0, w: 2.0, h: 0.3, shape: "rectangle", rotation: 180, color: "#d4af37", editable: true, removable: true },
+  { id: "e6", type: "door", name: "E6", x: 10.0, y: 54.0, w: 2.0, h: 0.3, shape: "rectangle", rotation: 90, color: "#d4af37", editable: true, removable: true },
+  { id: "e7", type: "door", name: "E7", x: 10.0, y: 22.0, w: 2.0, h: 0.3, shape: "rectangle", rotation: 90, color: "#d4af37", editable: true, removable: true }
 ];
 
 export const TOOLBOX_TEMPLATES = [
@@ -171,6 +170,15 @@ export const TOOLBOX_TEMPLATES = [
     color: "#065f46",
     exhibitor: "Nuevo Expositor",
     icon: "store"
+  },
+  {
+    type: "door",
+    name: "Puerta de Acceso",
+    w: 2.0,
+    h: 0.3,
+    shape: "rectangle",
+    color: "#d4af37",
+    icon: "door-open"
   },
   {
     type: "table_round",

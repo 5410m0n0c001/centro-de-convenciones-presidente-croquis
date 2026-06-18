@@ -24,6 +24,12 @@ document.addEventListener("DOMContentLoaded", () => {
   if (savedLayout) {
     try {
       state.elements = JSON.parse(savedLayout);
+      // Migración/Compatibilidad: Si no hay puertas en el diseño guardado, agregar las puertas por defecto
+      if (!state.elements.some(e => e.type === "door")) {
+        const defaultDoors = INITIAL_ELEMENTS.filter(e => e.type === "door");
+        state.elements = [...state.elements, ...JSON.parse(JSON.stringify(defaultDoors))];
+        localStorage.setItem("cc_presidente_layout", JSON.stringify(state.elements));
+      }
     } catch (e) {
       console.error("Error al cargar distribución guardada. Usando valores iniciales.", e);
       state.elements = JSON.parse(JSON.stringify(INITIAL_ELEMENTS));

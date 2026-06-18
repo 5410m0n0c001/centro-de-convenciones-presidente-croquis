@@ -243,6 +243,9 @@ function render() {
       case "bar_stool":
         renderHighTable(group, elem);
         break;
+      case "door":
+        renderDoor(group, elem);
+        break;
       default:
         renderGeneric(group, elem);
         break;
@@ -433,47 +436,7 @@ function renderStaticStructures() {
     staticGroup.appendChild(wl);
   });
 
-  // I) Dibujar Puertas e1 a e7
-  STATIC_STRUCTURES.doors.forEach(door => {
-    const gDoor = document.createElementNS("http://www.w3.org/2000/svg", "g");
-    gDoor.setAttribute("transform", `translate(${door.x * SCALE}, ${door.y * SCALE}) rotate(${door.angle})`);
-    
-    const dW = door.w * SCALE;
-    
-    const gap = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-    gap.setAttribute("x", (-dW/2).toString());
-    gap.setAttribute("y", "-4");
-    gap.setAttribute("width", dW.toString());
-    gap.setAttribute("height", "8");
-    gap.setAttribute("fill", "var(--svg-bg)");
-    gDoor.appendChild(gap);
-
-    const doorLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
-    doorLine.setAttribute("x1", (-dW/2).toString());
-    doorLine.setAttribute("y1", "0");
-    doorLine.setAttribute("x2", (-dW/2).toString());
-    doorLine.setAttribute("y2", (-dW).toString());
-    doorLine.setAttribute("class", "svg-door");
-    gDoor.appendChild(doorLine);
-
-    const swing = document.createElementNS("http://www.w3.org/2000/svg", "path");
-    swing.setAttribute("d", `M ${-dW/2} ${-dW} A ${dW} ${dW} 0 0 1 ${dW/2} 0`);
-    swing.setAttribute("class", "svg-door");
-    swing.setAttribute("stroke-dasharray", "4 3");
-    gDoor.appendChild(swing);
-
-    const doorLbl = document.createElementNS("http://www.w3.org/2000/svg", "text");
-    doorLbl.setAttribute("x", "0");
-    doorLbl.setAttribute("y", (-dW - 6).toString());
-    doorLbl.setAttribute("class", "svg-label");
-    doorLbl.setAttribute("text-anchor", "middle");
-    doorLbl.setAttribute("font-size", "10");
-    doorLbl.setAttribute("transform", `rotate(${-door.angle})`);
-    doorLbl.textContent = door.name.toUpperCase();
-    gDoor.appendChild(doorLbl);
-
-    staticGroup.appendChild(gDoor);
-  });
+  // I) Las puertas ahora se cargan e interaccionan de forma dinámica desde elementsArray
 }
 
 /* --- RENDERIZACIÓN DE MUEBLES --- */
@@ -780,6 +743,46 @@ function renderGeneric(group, elem) {
   box.setAttribute("stroke-width", "1");
   box.setAttribute("rx", "3");
   group.appendChild(box);
+}
+
+function renderDoor(group, elem) {
+  const dW = elem.w * SCALE;
+  
+  // Fondo ocultador para simular el hueco en el muro en 2D
+  const gap = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+  gap.setAttribute("x", (-dW/2).toString());
+  gap.setAttribute("y", "-4");
+  gap.setAttribute("width", dW.toString());
+  gap.setAttribute("height", "8");
+  gap.setAttribute("fill", "var(--svg-bg)");
+  group.appendChild(gap);
+
+  // Línea de la puerta abierta
+  const doorLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
+  doorLine.setAttribute("x1", (-dW/2).toString());
+  doorLine.setAttribute("y1", "0");
+  doorLine.setAttribute("x2", (-dW/2).toString());
+  doorLine.setAttribute("y2", (-dW).toString());
+  doorLine.setAttribute("class", "svg-door");
+  group.appendChild(doorLine);
+
+  // Arco de apertura
+  const swing = document.createElementNS("http://www.w3.org/2000/svg", "path");
+  swing.setAttribute("d", `M ${-dW/2} ${-dW} A ${dW} ${dW} 0 0 1 ${dW/2} 0`);
+  swing.setAttribute("class", "svg-door");
+  swing.setAttribute("stroke-dasharray", "4 3");
+  group.appendChild(swing);
+
+  // Etiqueta identificativa
+  const doorLbl = document.createElementNS("http://www.w3.org/2000/svg", "text");
+  doorLbl.setAttribute("x", "0");
+  doorLbl.setAttribute("y", (-dW - 6).toString());
+  doorLbl.setAttribute("class", "svg-label");
+  doorLbl.setAttribute("text-anchor", "middle");
+  doorLbl.setAttribute("font-size", "10");
+  doorLbl.setAttribute("transform", `rotate(${-(elem.rotation || 0)})`);
+  doorLbl.textContent = elem.name.toUpperCase();
+  group.appendChild(doorLbl);
 }
 
 /* --- EVENTOS DE ARRASTRE DE ELEMENTOS --- */

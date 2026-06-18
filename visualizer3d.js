@@ -15,6 +15,7 @@ let selectedElementId = null;
 let animationFrameId = null;
 let selectionRing = null;
 let currentTheme = 'premium';
+let wallsGroup = null;
 
 const COLORS = {
   floorIndoor: 0x1e293b,    // Mármol pizarra oscuro
@@ -72,6 +73,8 @@ export function init3D(containerElement, initialElements, themeName = 'premium')
   setupLighting();
   
   // 6. Construir estructuras arquitectónicas fijas digitalizadas del croquis
+  wallsGroup = new THREE.Group();
+  scene.add(wallsGroup);
   createStatic3DStructures();
   
   // 7. Aro de selección
@@ -91,6 +94,11 @@ export function destroy3D() {
     cancelAnimationFrame(animationFrameId);
   }
   window.removeEventListener("resize", resize3D);
+  if (wallsGroup) {
+    clearWalls3D();
+    if (scene) scene.remove(wallsGroup);
+    wallsGroup = null;
+  }
   if (renderer) {
     renderer.dispose();
   }
@@ -275,106 +283,6 @@ function createStatic3DStructures() {
     scene.add(ftGroup);
   }
 
-  // D) Muros del Salón (Doble altura: 6.0m, divididos por las puertas para dejar los huecos)
-  // Muro Superior (z=12, x:10-46, ancho=36, alto=6, espesor=0.3) - Continuo
-  const wallTop = new THREE.Mesh(new THREE.BoxGeometry(36, 6, 0.3), wallMat);
-  wallTop.position.set(28, 3.0, 12.0);
-  wallTop.castShadow = true;
-  wallTop.receiveShadow = true;
-  scene.add(wallTop);
-
-  // Muro Izquierdo (x=10, z:12-70, largo=58) - Con huecos para E7 (z=22, w=2) y E6 (z=54, w=2)
-  // Segmento 1: z=12 a z=21 (largo=9)
-  const wallLeft1 = new THREE.Mesh(new THREE.BoxGeometry(0.3, 6, 9.0), wallMat);
-  wallLeft1.position.set(10.0, 3.0, 16.5);
-  wallLeft1.castShadow = true;
-  wallLeft1.receiveShadow = true;
-  scene.add(wallLeft1);
-
-  // Segmento 2: z=23 a z=53 (largo=30)
-  const wallLeft2 = new THREE.Mesh(new THREE.BoxGeometry(0.3, 6, 30.0), wallMat);
-  wallLeft2.position.set(10.0, 3.0, 38.0);
-  wallLeft2.castShadow = true;
-  wallLeft2.receiveShadow = true;
-  scene.add(wallLeft2);
-
-  // Segmento 3: z=55 a z=70 (largo=15)
-  const wallLeft3 = new THREE.Mesh(new THREE.BoxGeometry(0.3, 6, 15.0), wallMat);
-  wallLeft3.position.set(10.0, 3.0, 62.5);
-  wallLeft3.castShadow = true;
-  wallLeft3.receiveShadow = true;
-  scene.add(wallLeft3);
-
-  // Muro Derecho (x=46, z:12-70, largo=58) - Con huecos para E1 (z=22, w=2) y E2 (z=56, w=4)
-  // Segmento 1: z=12 a z=21 (largo=9)
-  const wallRight1 = new THREE.Mesh(new THREE.BoxGeometry(0.3, 6, 9.0), wallMat);
-  wallRight1.position.set(46.0, 3.0, 16.5);
-  wallRight1.castShadow = true;
-  wallRight1.receiveShadow = true;
-  scene.add(wallRight1);
-
-  // Segmento 2: z=23 a z=54 (largo=31)
-  const wallRight2 = new THREE.Mesh(new THREE.BoxGeometry(0.3, 6, 31.0), wallMat);
-  wallRight2.position.set(46.0, 3.0, 38.5);
-  wallRight2.castShadow = true;
-  wallRight2.receiveShadow = true;
-  scene.add(wallRight2);
-
-  // Segmento 3: z=58 a z=70 (largo=12)
-  const wallRight3 = new THREE.Mesh(new THREE.BoxGeometry(0.3, 6, 12.0), wallMat);
-  wallRight3.position.set(46.0, 3.0, 64.0);
-  wallRight3.castShadow = true;
-  wallRight3.receiveShadow = true;
-  scene.add(wallRight3);
-
-  // Muro Inferior (z=70, x:10-46, ancho=36) - Con huecos para E5 (x=18, w=2), E4 (x=28, w=2) y E3 (x=38, w=2)
-  // Segmento 1: x=10 a x=17 (ancho=7)
-  const wallBottom1 = new THREE.Mesh(new THREE.BoxGeometry(7.0, 6, 0.3), wallMat);
-  wallBottom1.position.set(13.5, 3.0, 70.0);
-  wallBottom1.castShadow = true;
-  wallBottom1.receiveShadow = true;
-  scene.add(wallBottom1);
-
-  // Segmento 2: x=19 a x=27 (ancho=8)
-  const wallBottom2 = new THREE.Mesh(new THREE.BoxGeometry(8.0, 6, 0.3), wallMat);
-  wallBottom2.position.set(23.0, 3.0, 70.0);
-  wallBottom2.castShadow = true;
-  wallBottom2.receiveShadow = true;
-  scene.add(wallBottom2);
-
-  // Segmento 3: x=29 a x=37 (ancho=8)
-  const wallBottom3 = new THREE.Mesh(new THREE.BoxGeometry(8.0, 6, 0.3), wallMat);
-  wallBottom3.position.set(33.0, 3.0, 70.0);
-  wallBottom3.castShadow = true;
-  wallBottom3.receiveShadow = true;
-  scene.add(wallBottom3);
-
-  // Segmento 4: x=39 a x=46 (ancho=7)
-  const wallBottom4 = new THREE.Mesh(new THREE.BoxGeometry(7.0, 6, 0.3), wallMat);
-  wallBottom4.position.set(42.5, 3.0, 70.0);
-  wallBottom4.castShadow = true;
-  wallBottom4.receiveShadow = true;
-  scene.add(wallBottom4);
-
-  // Columnas de carga perimetrales
-  const colGeom = new THREE.BoxGeometry(0.5, 6, 0.5);
-  for (let z = 16; z < 68; z += 6) {
-    // Solo dibujar si no coinciden con las puertas de la izquierda (E7=22, E6=54)
-    if (Math.abs(z - 22) > 2 && Math.abs(z - 54) > 2) {
-      const colL = new THREE.Mesh(colGeom, wallMat);
-      colL.position.set(10.35, 3.0, z);
-      colL.castShadow = true;
-      scene.add(colL);
-    }
-
-    // Solo dibujar si no coinciden con las puertas de la derecha (E1=22, E2=56)
-    if (Math.abs(z - 22) > 2 && (z < 52 || z > 59)) {
-      const colR = new THREE.Mesh(colGeom, wallMat);
-      colR.position.set(45.65, 3.0, z);
-      colR.castShadow = true;
-      scene.add(colR);
-    }
-  }
 
   // E) Baños WC exteriores (alto=6m, igualando la altura de la construcción) con letrero WC
   STATIC_STRUCTURES.bathrooms.forEach(bath => {
@@ -527,62 +435,7 @@ function createStatic3DStructures() {
     scene.add(courtyard);
   }
 
-  // I) Renderizar Puertas E1 a E7 con marco y paneles de vidrio en 3D
-  STATIC_STRUCTURES.doors.forEach(door => {
-    const doorG = new THREE.Group();
-    doorG.position.set(door.x, 0.05, door.y);
-    doorG.rotation.y = -door.angle * Math.PI / 180;
-    
-    const frameColor = isBw ? 0x000000 : (isCadD ? 0x00ff00 : 0x3e2723);
-    const frameMat = new THREE.MeshStandardMaterial({ color: frameColor, roughness: 0.6, metalness: 0.1 });
-    
-    // Poste Izquierdo
-    const postL = new THREE.Mesh(new THREE.BoxGeometry(0.1, 2.4, 0.1), frameMat);
-    postL.position.set(-door.w/2 + 0.05, 1.2, 0);
-    postL.castShadow = true;
-    doorG.add(postL);
 
-    // Poste Derecho
-    const postR = new THREE.Mesh(new THREE.BoxGeometry(0.1, 2.4, 0.1), frameMat);
-    postR.position.set(door.w/2 - 0.05, 1.2, 0);
-    postR.castShadow = true;
-    doorG.add(postR);
-
-    // Viga superior
-    const beam = new THREE.Mesh(new THREE.BoxGeometry(door.w, 0.1, 0.1), frameMat);
-    beam.position.set(0, 2.35, 0);
-    beam.castShadow = true;
-    doorG.add(beam);
-
-    if (!isBw) {
-      // Panel de cristal
-      const glassGeom = new THREE.BoxGeometry(door.w - 0.15, 2.3, 0.02);
-      const glassMat = new THREE.MeshStandardMaterial({
-        color: 0xbae6fd,
-        transparent: true,
-        opacity: 0.45,
-        roughness: 0.1,
-        metalness: 0.9
-      });
-      const glass = new THREE.Mesh(glassGeom, glassMat);
-      glass.position.set(0, 1.15, 0);
-      doorG.add(glass);
-
-      // Jaladeras de la puerta (doradas)
-      const handleGeom = new THREE.CylinderGeometry(0.015, 0.015, 0.4, 8);
-      const handleMat = new THREE.MeshStandardMaterial({ color: 0xd4af37, metalness: 0.8, roughness: 0.2 });
-      
-      const handleL = new THREE.Mesh(handleGeom, handleMat);
-      handleL.position.set(-0.08, 1.1, 0.02);
-      doorG.add(handleL);
-
-      const handleR = new THREE.Mesh(handleGeom, handleMat);
-      handleR.position.set(0.08, 1.1, 0.02);
-      doorG.add(handleR);
-    }
-    
-    scene.add(doorG);
-  });
 }
 
 /* --- CREAR ARO DE SELECCIÓN --- */
@@ -672,6 +525,7 @@ export function syncWithData(elementsArray) {
   });
 
   updateSelectionRing();
+  updateWalls3D(elementsArray);
 }
 
 export function selectElement3D(elementId) {
@@ -703,6 +557,9 @@ function build3DElement(group, elem) {
   switch (elem.type) {
     case "stand":
       build3DStand(group, elem);
+      break;
+    case "door":
+      build3DDoor(group, elem);
       break;
     case "table":
       build3DTable(group, elem);
@@ -1280,4 +1137,214 @@ function build3DMonochrome(group, elem) {
   const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0x000000, linewidth: 1 }));
   line.position.y = tH / 2;
   group.add(line);
+}
+
+function build3DDoor(group, elem) {
+  const isBw = currentTheme === 'minimalist';
+  const isCadD = currentTheme === 'cad-dark';
+  
+  if (isBw) {
+    build3DMonochrome(group, elem);
+    return;
+  }
+  if (isCadD) {
+    build3DWireframe(group, elem, 0x00ff00);
+    return;
+  }
+
+  const frameColor = 0x3e2723;
+  const frameMat = new THREE.MeshStandardMaterial({ color: frameColor, roughness: 0.6, metalness: 0.1 });
+  
+  // Poste Izquierdo
+  const postL = new THREE.Mesh(new THREE.BoxGeometry(0.1, 2.4, 0.1), frameMat);
+  postL.position.set(-elem.w/2 + 0.05, 1.2, 0);
+  postL.castShadow = true;
+  group.add(postL);
+
+  // Poste Derecho
+  const postR = new THREE.Mesh(new THREE.BoxGeometry(0.1, 2.4, 0.1), frameMat);
+  postR.position.set(elem.w/2 - 0.05, 1.2, 0);
+  postR.castShadow = true;
+  group.add(postR);
+
+  // Viga superior
+  const beam = new THREE.Mesh(new THREE.BoxGeometry(elem.w, 0.1, 0.1), frameMat);
+  beam.position.set(0, 2.35, 0);
+  beam.castShadow = true;
+  group.add(beam);
+
+  // Panel de cristal
+  const glassGeom = new THREE.BoxGeometry(elem.w - 0.15, 2.3, 0.02);
+  const glassMat = new THREE.MeshStandardMaterial({
+    color: 0xbae6fd,
+    transparent: true,
+    opacity: 0.45,
+    roughness: 0.1,
+    metalness: 0.9
+  });
+  const glass = new THREE.Mesh(glassGeom, glassMat);
+  glass.position.set(0, 1.15, 0);
+  group.add(glass);
+
+  // Jaladeras de la puerta (doradas)
+  const handleGeom = new THREE.CylinderGeometry(0.015, 0.015, 0.4, 8);
+  const handleMat = new THREE.MeshStandardMaterial({ color: COLORS.gold, metalness: 0.8, roughness: 0.2 });
+  
+  const handleL = new THREE.Mesh(handleGeom, handleMat);
+  handleL.position.set(-0.08, 1.1, 0.02);
+  group.add(handleL);
+
+  const handleR = new THREE.Mesh(handleGeom, handleMat);
+  handleR.position.set(0.08, 1.1, 0.02);
+  group.add(handleR);
+}
+
+function clearWalls3D() {
+  if (!wallsGroup) return;
+  while (wallsGroup.children.length > 0) {
+    const obj = wallsGroup.children[0];
+    wallsGroup.remove(obj);
+    if (obj.geometry) obj.geometry.dispose();
+    if (obj.material) {
+      if (Array.isArray(obj.material)) {
+        obj.material.forEach(m => m.dispose());
+      } else {
+        obj.material.dispose();
+      }
+    }
+  }
+}
+
+function updateWalls3D(elementsArray) {
+  if (!wallsGroup) return;
+  clearWalls3D();
+
+  const isBw = currentTheme === 'minimalist';
+  const isCadL = currentTheme === 'cad-light';
+  const isCadD = currentTheme === 'cad-dark';
+
+  const wallColor = isBw ? 0x000000 : (isCadL ? 0x475569 : (isCadD ? 0x00ff00 : COLORS.walls));
+  const wallMat = new THREE.MeshStandardMaterial({
+    color: wallColor,
+    roughness: 0.8,
+    metalness: 0.05
+  });
+
+  // Recolectar gaps para cada muro
+  const leftGaps = [];
+  const rightGaps = [];
+  const topGaps = [];
+  const bottomGaps = [];
+
+  elementsArray.forEach(elem => {
+    if (elem.type !== "door") return;
+
+    const distL = Math.abs(elem.x - 10.0);
+    const distR = Math.abs(elem.x - 46.0);
+    const distT = Math.abs(elem.y - 12.0);
+    const distB = Math.abs(elem.y - 70.0);
+
+    const minDist = Math.min(distL, distR, distT, distB);
+    if (minDist > 3.0) return; // No está en ningún muro perimetral
+
+    if (minDist === distL) {
+      leftGaps.push([elem.y - elem.w / 2, elem.y + elem.w / 2]);
+    } else if (minDist === distR) {
+      rightGaps.push([elem.y - elem.w / 2, elem.y + elem.w / 2]);
+    } else if (minDist === distT) {
+      topGaps.push([elem.x - elem.w / 2, elem.x + elem.w / 2]);
+    } else if (minDist === distB) {
+      bottomGaps.push([elem.x - elem.w / 2, elem.x + elem.w / 2]);
+    }
+  });
+
+  // Auxiliar para dividir intervalo
+  const splitInterval = (minVal, maxVal, gaps) => {
+    let segments = [[minVal, maxVal]];
+    gaps.forEach(([gStart, gEnd]) => {
+      let nextSegments = [];
+      segments.forEach(([sStart, sEnd]) => {
+        if (gEnd <= sStart || gStart >= sEnd) {
+          nextSegments.push([sStart, sEnd]);
+        } else {
+          if (gStart > sStart) nextSegments.push([sStart, gStart]);
+          if (gEnd < sEnd) nextSegments.push([gEnd, sEnd]);
+        }
+      });
+      segments = nextSegments;
+    });
+    return segments;
+  };
+
+  // 1. Muro Superior (Z = 12.0, X desde 10.0 hasta 46.0)
+  const topSegments = splitInterval(10.0, 46.0, topGaps);
+  topSegments.forEach(([x1, x2]) => {
+    const length = x2 - x1;
+    if (length < 0.05) return;
+    const geom = new THREE.BoxGeometry(length, 6.0, 0.3);
+    const mesh = new THREE.Mesh(geom, wallMat);
+    mesh.position.set((x1 + x2) / 2, 3.0, 12.0);
+    mesh.castShadow = true;
+    mesh.receiveShadow = true;
+    wallsGroup.add(mesh);
+  });
+
+  // 2. Muro Inferior (Z = 70.0, X desde 10.0 hasta 46.0)
+  const bottomSegments = splitInterval(10.0, 46.0, bottomGaps);
+  bottomSegments.forEach(([x1, x2]) => {
+    const length = x2 - x1;
+    if (length < 0.05) return;
+    const geom = new THREE.BoxGeometry(length, 6.0, 0.3);
+    const mesh = new THREE.Mesh(geom, wallMat);
+    mesh.position.set((x1 + x2) / 2, 3.0, 70.0);
+    mesh.castShadow = true;
+    mesh.receiveShadow = true;
+    wallsGroup.add(mesh);
+  });
+
+  // 3. Muro Izquierdo (X = 10.0, Z desde 12.0 hasta 70.0)
+  const leftSegments = splitInterval(12.0, 70.0, leftGaps);
+  leftSegments.forEach(([z1, z2]) => {
+    const length = z2 - z1;
+    if (length < 0.05) return;
+    const geom = new THREE.BoxGeometry(0.3, 6.0, length);
+    const mesh = new THREE.Mesh(geom, wallMat);
+    mesh.position.set(10.0, 3.0, (z1 + z2) / 2);
+    mesh.castShadow = true;
+    mesh.receiveShadow = true;
+    wallsGroup.add(mesh);
+  });
+
+  // 4. Muro Derecho (X = 46.0, Z desde 12.0 hasta 70.0)
+  const rightSegments = splitInterval(12.0, 70.0, rightGaps);
+  rightSegments.forEach(([z1, z2]) => {
+    const length = z2 - z1;
+    if (length < 0.05) return;
+    const geom = new THREE.BoxGeometry(0.3, 6.0, length);
+    const mesh = new THREE.Mesh(geom, wallMat);
+    mesh.position.set(46.0, 3.0, (z1 + z2) / 2);
+    mesh.castShadow = true;
+    mesh.receiveShadow = true;
+    wallsGroup.add(mesh);
+  });
+
+  // 5. Columnas
+  const colGeom = new THREE.BoxGeometry(0.5, 6, 0.5);
+  for (let z = 16; z < 68; z += 6) {
+    const inLeftGap = leftGaps.some(([gStart, gEnd]) => z >= gStart - 0.25 && z <= gEnd + 0.25);
+    if (!inLeftGap) {
+      const colL = new THREE.Mesh(colGeom, wallMat);
+      colL.position.set(10.35, 3.0, z);
+      colL.castShadow = true;
+      wallsGroup.add(colL);
+    }
+
+    const inRightGap = rightGaps.some(([gStart, gEnd]) => z >= gStart - 0.25 && z <= gEnd + 0.25);
+    if (!inRightGap) {
+      const colR = new THREE.Mesh(colGeom, wallMat);
+      colR.position.set(45.65, 3.0, z);
+      colR.castShadow = true;
+      wallsGroup.add(colR);
+    }
+  }
 }
