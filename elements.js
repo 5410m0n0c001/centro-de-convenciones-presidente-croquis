@@ -18,74 +18,11 @@ export const SALON = {
 
 // Estructuras fijas (muros, WC, escenario, rampa, fuente)
 export const STATIC_STRUCTURES = {
-  // Salón Techado (Muros)
-  walls: [
-    // Muro Superior
-    { x1: 10.0, y1: 12.0, x2: 46.0, y2: 12.0 },
-    // Muro Izquierdo
-    { x1: 10.0, y1: 12.0, x2: 10.0, y2: 70.0 },
-    // Muro Derecho (dividido para dejar espacio al acceso de la rampa E2)
-    { x1: 46.0, y1: 12.0, x2: 46.0, y2: 54.0 },
-    { x1: 46.0, y1: 58.0, x2: 46.0, y2: 70.0 },
-    // Muro Inferior
-    { x1: 10.0, y1: 70.0, x2: 46.0, y2: 70.0 }
-  ],
-  
-  // Baños WC exteriores (esquinas superiores del salón)
-  bathrooms: [
-    { id: "wc-left", name: "WC", x: 8.0, y: 12.0, w: 2.0, h: 4.0, label: "WC" },
-    { id: "wc-right", name: "WC", x: 46.0, y: 12.0, w: 2.0, h: 4.0, label: "WC" }
-  ],
-
-  // Escenario (Stage) en media luna y Pasarela en T
-  stage: {
-    x: 28.0, // Centro del salón (10 + 36/2)
-    y: 12.0, // Al fondo
-    radiusX: 8.0,
-    radiusY: 4.0,
-    heightZ: 0.8,
-    
-    // Pasarela conectada (catwalk en T)
-    catwalk: {
-      x: 28.0,      // Centrada
-      y: 16.0,      // Arranca al final del escenario
-      w: 2.0,       // Ancho pasarela (tallo de la T)
-      h: 14.0,      // Largo pasarela total
-      tBarW: 14.0,  // Ancho barra horizontal de la T
-      tBarH: 4.0,   // Grosor barra horizontal de la T
-      heightZ: 0.6
-    }
-  },
-
-  // Entrada Principal y rampa en el cuadrante inferior derecho
-  entrance: {
-    x: 58.0,      // Centro del área total de entrada (de x=46 a x=70 -> (46+70)/2 = 58)
-    y: 62.0,      // Centro vertical (de y=54 a y=70 -> (54+70)/2 = 62)
-    w: 24.0,      // Ancho total del área (desde salón x=46 hasta límite negro x=70)
-    h: 16.0,      // Alto total del área (desde y=54 hasta y=70)
-    rampX: 46.0,  // Inicio de la rampa exactamente en la pared del salón (x=46)
-    rampY: 54.0,  // Inicio de la rampa en Y (alineado con la puerta E2 de y=54 a y=58)
-    rampWidth: 4.0, // Ancho de la rampa
-    rampLength: 20.0, // Se extiende hasta conectar con el pasillo de la entrada (x=46 a x=66)
-    rampHeightZ: 0.4
-  },
-
-  // Área de Fuente y Jardín derecho
-  garden: {
-    x: 46.0,
-    y: 12.0,
-    w: 24.0,
-    h: 40.0,
-    fountain: {
-      x: 58.0,
-      y: 30.0,
-      radiusX: 5.0, // Radio X de la fuente (ovalada)
-      radiusY: 10.0, // Radio Y de la fuente
-      heightZ: 0.5
-    }
-  },
-
-  // Puertas de acceso (e1 a e7) ahora dinámicas
+  walls: [],
+  bathrooms: [],
+  stage: null,
+  entrance: null,
+  garden: null,
   doors: []
 };
 
@@ -157,7 +94,91 @@ export const INITIAL_ELEMENTS = [
   { id: "e4", type: "door", name: "E4", x: 28.0, y: 70.0, w: 2.0, h: 0.3, shape: "rectangle", rotation: 180, color: "#d4af37", editable: true, removable: true },
   { id: "e5", type: "door", name: "E5", x: 18.0, y: 70.0, w: 2.0, h: 0.3, shape: "rectangle", rotation: 180, color: "#d4af37", editable: true, removable: true },
   { id: "e6", type: "door", name: "E6", x: 10.0, y: 54.0, w: 2.0, h: 0.3, shape: "rectangle", rotation: 90, color: "#d4af37", editable: true, removable: true },
-  { id: "e7", type: "door", name: "E7", x: 10.0, y: 22.0, w: 2.0, h: 0.3, shape: "rectangle", rotation: 90, color: "#d4af37", editable: true, removable: true }
+  { id: "e7", type: "door", name: "E7", x: 10.0, y: 22.0, w: 2.0, h: 0.3, shape: "rectangle", rotation: 90, color: "#d4af37", editable: true, removable: true },
+  {
+    id: "salon-main",
+    type: "salon",
+    name: "Salón Techado",
+    x: 28.0,
+    y: 41.0,
+    w: 36.0,
+    h: 58.0,
+    shape: "rectangle",
+    rotation: 0,
+    color: "#1e293b",
+    editable: true,
+    removable: false
+  },
+  {
+    id: "garden-main",
+    type: "garden",
+    name: "Área de Jardín",
+    x: 58.0,
+    y: 32.0,
+    w: 24.0,
+    h: 40.0,
+    shape: "rectangle",
+    rotation: 0,
+    color: "#166534",
+    editable: true,
+    removable: false
+  },
+  {
+    id: "entrance-main",
+    type: "entrance",
+    name: "Entrada y Rampa",
+    x: 58.0,
+    y: 62.0,
+    w: 24.0,
+    h: 16.0,
+    shape: "rectangle",
+    rotation: 0,
+    color: "#475569",
+    editable: true,
+    removable: false
+  },
+  {
+    id: "bathroom-left",
+    type: "bathroom",
+    name: "WC Izquierdo",
+    x: 9.0,
+    y: 14.0,
+    w: 2.0,
+    h: 4.0,
+    shape: "rectangle",
+    rotation: 0,
+    color: "#334155",
+    editable: true,
+    removable: false
+  },
+  {
+    id: "bathroom-right",
+    type: "bathroom",
+    name: "WC Derecho",
+    x: 47.0,
+    y: 14.0,
+    w: 2.0,
+    h: 4.0,
+    shape: "rectangle",
+    rotation: 0,
+    color: "#334155",
+    editable: true,
+    removable: false
+  },
+  {
+    id: "stage-main",
+    type: "stage",
+    name: "Escenario y Pasarela",
+    x: 28.0,
+    y: 21.0,
+    w: 14.0,
+    h: 18.0,
+    shape: "rectangle",
+    rotation: 0,
+    color: "#5c3d2e",
+    editable: true,
+    removable: false
+  }
 ];
 
 export const TOOLBOX_TEMPLATES = [
@@ -179,6 +200,51 @@ export const TOOLBOX_TEMPLATES = [
     shape: "rectangle",
     color: "#d4af37",
     icon: "door-open"
+  },
+  {
+    type: "salon",
+    name: "Salón Principal",
+    w: 36.0,
+    h: 58.0,
+    shape: "rectangle",
+    color: "#1e293b",
+    icon: "square"
+  },
+  {
+    type: "garden",
+    name: "Área de Jardín",
+    w: 24.0,
+    h: 40.0,
+    shape: "rectangle",
+    color: "#166534",
+    icon: "leaf"
+  },
+  {
+    type: "entrance",
+    name: "Entrada y Rampa",
+    w: 24.0,
+    h: 16.0,
+    shape: "rectangle",
+    color: "#475569",
+    icon: "road"
+  },
+  {
+    type: "bathroom",
+    name: "Baño WC",
+    w: 2.0,
+    h: 4.0,
+    shape: "rectangle",
+    color: "#334155",
+    icon: "restroom"
+  },
+  {
+    type: "stage",
+    name: "Escenario Principal",
+    w: 14.0,
+    h: 18.0,
+    shape: "rectangle",
+    color: "#5c3d2e",
+    icon: "star"
   },
   {
     type: "table_round",

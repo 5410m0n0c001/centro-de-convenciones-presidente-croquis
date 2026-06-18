@@ -5,7 +5,7 @@
  * el arrastre de objetos, ajuste a rejilla (10cm), selección y transformaciones de zoom/panning.
  */
 
-import { CANVAS_WIDTH, CANVAS_HEIGHT, STATIC_STRUCTURES } from "./elements.js";
+import { CANVAS_WIDTH, CANVAS_HEIGHT } from "./elements.js";
 
 const SCALE = 15; // 1m = 15px (70m x 90m = 1050px x 1350px)
 let activeSvg = null;
@@ -203,7 +203,15 @@ function render() {
   
   elementsGroup.innerHTML = "";
   
-  currentElements.forEach(elem => {
+  // Ordenar elementos para asegurar que las estructuras de fondo se dibujen primero
+  const sortedElements = [...currentElements].sort((a, b) => {
+    const typeOrder = { "salon": 1, "garden": 2, "entrance": 3, "bathroom": 4, "stage": 5 };
+    const valA = typeOrder[a.type] || 10;
+    const valB = typeOrder[b.type] || 10;
+    return valA - valB;
+  });
+  
+  sortedElements.forEach(elem => {
     const group = document.createElementNS("http://www.w3.org/2000/svg", "g");
     group.setAttribute("class", `draggable ${elem.type}`);
     group.setAttribute("data-id", elem.id);
@@ -214,6 +222,21 @@ function render() {
     }
     
     switch (elem.type) {
+      case "salon":
+        renderSalon2D(group, elem);
+        break;
+      case "garden":
+        renderGarden2D(group, elem);
+        break;
+      case "entrance":
+        renderEntrance2D(group, elem);
+        break;
+      case "bathroom":
+        renderBathroom2D(group, elem);
+        break;
+      case "stage":
+        renderStage2D(group, elem);
+        break;
       case "stand":
         renderStand(group, elem);
         break;
@@ -261,182 +284,6 @@ function renderStaticStructures() {
   const staticGroup = document.getElementById("svg-static-group");
   if (!staticGroup) return;
   staticGroup.innerHTML = "";
-
-  // A) Dibujar Jardín y Césped
-  const gd = STATIC_STRUCTURES.garden;
-  const gardenRect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-  gardenRect.setAttribute("x", (gd.x * SCALE).toString());
-  gardenRect.setAttribute("y", (gd.y * SCALE).toString());
-  gardenRect.setAttribute("width", (gd.w * SCALE).toString());
-  gardenRect.setAttribute("height", (gd.h * SCALE).toString());
-  gardenRect.setAttribute("class", "svg-garden-zone");
-  staticGroup.appendChild(gardenRect);
-
-  // B) Dibujar Fuente en el jardín
-  const ft = gd.fountain;
-  const fountainOuter = document.createElementNS("http://www.w3.org/2000/svg", "ellipse");
-  fountainOuter.setAttribute("cx", (ft.x * SCALE).toString());
-  fountainOuter.setAttribute("cy", (ft.y * SCALE).toString());
-  fountainOuter.setAttribute("rx", (ft.radiusX * SCALE).toString());
-  fountainOuter.setAttribute("ry", (ft.radiusY * SCALE).toString());
-  fountainOuter.setAttribute("class", "svg-fountain-outer");
-  staticGroup.appendChild(fountainOuter);
-  
-  const fountainInner = document.createElementNS("http://www.w3.org/2000/svg", "ellipse");
-  fountainInner.setAttribute("cx", (ft.x * SCALE).toString());
-  fountainInner.setAttribute("cy", (ft.y * SCALE).toString());
-  fountainInner.setAttribute("rx", (ft.radiusX * 0.4 * SCALE).toString());
-  fountainInner.setAttribute("ry", (ft.radiusY * 0.4 * SCALE).toString());
-  fountainInner.setAttribute("fill", "#60a5fa");
-  staticGroup.appendChild(fountainInner);
-
-  // C) Dibujar Entrada Principal y Área de Rampa/Patio
-  const ent = STATIC_STRUCTURES.entrance;
-  
-  // Rectángulo delimitador punteado para el área completa de entrada (24m x 16m)
-  const entRect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-  entRect.setAttribute("x", ((ent.x - ent.w/2) * SCALE).toString());
-  entRect.setAttribute("y", ((ent.y - ent.h/2) * SCALE).toString());
-  entRect.setAttribute("width", (ent.w * SCALE).toString());
-  entRect.setAttribute("height", (ent.h * SCALE).toString());
-  entRect.setAttribute("fill", "none");
-  entRect.setAttribute("stroke", "var(--svg-wall-stroke)");
-  entRect.setAttribute("stroke-width", "1.5");
-  entRect.setAttribute("stroke-dasharray", "8 4");
-  staticGroup.appendChild(entRect);
-
-  // Patio/Plaza de acceso (20m x 12m, de y=58 a y=70, x=46 a x=66)
-  const courtyardRect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-  courtyardRect.setAttribute("x", (46.0 * SCALE).toString());
-  courtyardRect.setAttribute("y", (58.0 * SCALE).toString());
-  courtyardRect.setAttribute("width", (20.0 * SCALE).toString());
-  courtyardRect.setAttribute("height", (12.0 * SCALE).toString());
-  courtyardRect.setAttribute("fill", "none");
-  courtyardRect.setAttribute("stroke", "var(--svg-wall-stroke)");
-  courtyardRect.setAttribute("stroke-width", "0.8");
-  courtyardRect.setAttribute("stroke-dasharray", "4 4");
-  staticGroup.appendChild(courtyardRect);
-
-  // Pasillo de la Entrada Principal (4m x 16m, pegado al delineamiento negro en x=66 a x=70)
-  const walkwayRect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-  walkwayRect.setAttribute("x", (66.0 * SCALE).toString());
-  walkwayRect.setAttribute("y", (54.0 * SCALE).toString());
-  walkwayRect.setAttribute("width", (4.0 * SCALE).toString());
-  walkwayRect.setAttribute("height", (16.0 * SCALE).toString());
-  walkwayRect.setAttribute("fill", "var(--svg-ramp)");
-  walkwayRect.setAttribute("fill-opacity", "0.3");
-  walkwayRect.setAttribute("stroke", "var(--svg-wall-stroke)");
-  walkwayRect.setAttribute("stroke-width", "1");
-  staticGroup.appendChild(walkwayRect);
-
-  // Etiqueta vertical "ENTRADA PRINCIPAL"
-  const entLabel = document.createElementNS("http://www.w3.org/2000/svg", "text");
-  entLabel.setAttribute("x", (68.0 * SCALE).toString());
-  entLabel.setAttribute("y", (62.0 * SCALE).toString());
-  entLabel.setAttribute("class", "svg-label");
-  entLabel.setAttribute("text-anchor", "middle");
-  entLabel.setAttribute("transform", `rotate(90, ${68.0 * SCALE}, ${62.0 * SCALE})`);
-  entLabel.textContent = "ENTRADA PRINCIPAL";
-  staticGroup.appendChild(entLabel);
-
-  // D) Rampa de Acceso (se conecta a E2 y se extiende 20m a la derecha)
-  const ramp = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-  ramp.setAttribute("x", (ent.rampX * SCALE).toString());
-  ramp.setAttribute("y", (ent.rampY * SCALE).toString());
-  ramp.setAttribute("width", (ent.rampLength * SCALE).toString());
-  ramp.setAttribute("height", (ent.rampWidth * SCALE).toString());
-  ramp.setAttribute("class", "svg-ramp-zone");
-  staticGroup.appendChild(ramp);
-
-  const rampArrow = document.createElementNS("http://www.w3.org/2000/svg", "path");
-  const ax = (ent.rampX + ent.rampLength * 0.4) * SCALE;
-  const ay = (ent.rampY + ent.rampWidth * 0.5) * SCALE;
-  rampArrow.setAttribute("d", `M ${ax+15} ${ay-7} L ${ax} ${ay} L ${ax+15} ${ay+7} M ${ax} ${ay} L ${ax+25} ${ay}`);
-  rampArrow.setAttribute("stroke", "#ffffff");
-  rampArrow.setAttribute("stroke-width", "1.5");
-  rampArrow.setAttribute("fill", "none");
-  staticGroup.appendChild(rampArrow);
-
-  // E) Dibujar Baños (WC)
-  STATIC_STRUCTURES.bathrooms.forEach(bath => {
-    const wc = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-    wc.setAttribute("x", (bath.x * SCALE).toString());
-    wc.setAttribute("y", (bath.y * SCALE).toString());
-    wc.setAttribute("width", (bath.w * SCALE).toString());
-    wc.setAttribute("height", (bath.h * SCALE).toString());
-    wc.setAttribute("class", "svg-wc-zone");
-    staticGroup.appendChild(wc);
-
-    const wcText = document.createElementNS("http://www.w3.org/2000/svg", "text");
-    wcText.setAttribute("x", ((bath.x + bath.w/2) * SCALE).toString());
-    wcText.setAttribute("y", ((bath.y + bath.h/2 + 0.3) * SCALE).toString());
-    wcText.setAttribute("class", "svg-label");
-    wcText.setAttribute("text-anchor", "middle");
-    wcText.textContent = bath.name;
-    staticGroup.appendChild(wcText);
-  });
-
-  // F) Dibujar Escenario en Media Luna
-  const stg = STATIC_STRUCTURES.stage;
-  const stagePath = document.createElementNS("http://www.w3.org/2000/svg", "path");
-  const stX = stg.x * SCALE;
-  const stY = stg.y * SCALE;
-  const rx = stg.radiusX * SCALE;
-  const ry = stg.radiusY * SCALE;
-  stagePath.setAttribute("d", `M ${stX - rx} ${stY} A ${rx} ${ry} 0 0 0 ${stX + rx} ${stY} Z`);
-  stagePath.setAttribute("class", "svg-stage-zone");
-  staticGroup.appendChild(stagePath);
-
-  const stageText = document.createElementNS("http://www.w3.org/2000/svg", "text");
-  stageText.setAttribute("x", stX.toString());
-  stageText.setAttribute("y", (stY + ry/2).toString());
-  stageText.setAttribute("class", "svg-label");
-  stageText.setAttribute("text-anchor", "middle");
-  stageText.textContent = "ESCENARIO";
-  staticGroup.appendChild(stageText);
-
-  // G) Dibujar Pasarela en T
-  const cw = stg.catwalk;
-  const catwalkPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
-  const cx = cw.x * SCALE;
-  const cy = cw.y * SCALE;
-  const cwW = cw.w * SCALE;
-  const cwH = cw.h * SCALE;
-  const tW = cw.tBarW * SCALE;
-  const tH = cw.tBarH * SCALE;
-  catwalkPath.setAttribute("d", `
-    M ${cx - cwW/2} ${cy} 
-    L ${cx - cwW/2} ${cy + cwH - tH}
-    L ${cx - tW/2} ${cy + cwH - tH}
-    L ${cx - tW/2} ${cy + cwH}
-    L ${cx + tW/2} ${cy + cwH}
-    L ${cx + tW/2} ${cy + cwH - tH}
-    L ${cx + cwW/2} ${cy + cwH - tH}
-    L ${cx + cwW/2} ${cy} Z
-  `);
-  catwalkPath.setAttribute("class", "svg-catwalk-zone");
-  staticGroup.appendChild(catwalkPath);
-
-  const catwalkText = document.createElementNS("http://www.w3.org/2000/svg", "text");
-  catwalkText.setAttribute("x", cx.toString());
-  catwalkText.setAttribute("y", (cy + cwH - tH/2 + 2).toString());
-  catwalkText.setAttribute("class", "svg-label");
-  catwalkText.setAttribute("text-anchor", "middle");
-  catwalkText.textContent = "PASARELA";
-  staticGroup.appendChild(catwalkText);
-
-  // H) Dibujar Muros del Salón
-  STATIC_STRUCTURES.walls.forEach(wall => {
-    const wl = document.createElementNS("http://www.w3.org/2000/svg", "line");
-    wl.setAttribute("x1", (wall.x1 * SCALE).toString());
-    wl.setAttribute("y1", (wall.y1 * SCALE).toString());
-    wl.setAttribute("x2", (wall.x2 * SCALE).toString());
-    wl.setAttribute("y2", (wall.y2 * SCALE).toString());
-    wl.setAttribute("class", "svg-wall");
-    staticGroup.appendChild(wl);
-  });
-
-  // I) Las puertas ahora se cargan e interaccionan de forma dinámica desde elementsArray
 }
 
 /* --- RENDERIZACIÓN DE MUEBLES --- */
@@ -783,6 +630,231 @@ function renderDoor(group, elem) {
   doorLbl.setAttribute("transform", `rotate(${-(elem.rotation || 0)})`);
   doorLbl.textContent = elem.name.toUpperCase();
   group.appendChild(doorLbl);
+}
+
+function renderSalon2D(group, elem) {
+  const wPx = elem.w * SCALE;
+  const hPx = elem.h * SCALE;
+
+  const box = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+  box.setAttribute("x", (-wPx/2).toString());
+  box.setAttribute("y", (-hPx/2).toString());
+  box.setAttribute("width", wPx.toString());
+  box.setAttribute("height", hPx.toString());
+  box.setAttribute("fill", elem.color || "#1e293b");
+  box.setAttribute("fill-opacity", "0.08");
+  box.setAttribute("stroke", "var(--svg-wall-stroke)");
+  box.setAttribute("stroke-width", "3.0");
+  group.appendChild(box);
+
+  const title = document.createElementNS("http://www.w3.org/2000/svg", "text");
+  title.setAttribute("x", "0");
+  title.setAttribute("y", "6");
+  title.setAttribute("class", "svg-label");
+  title.setAttribute("text-anchor", "middle");
+  title.setAttribute("font-size", "14");
+  title.setAttribute("font-weight", "800");
+  title.textContent = elem.name.toUpperCase();
+  group.appendChild(title);
+}
+
+function renderGarden2D(group, elem) {
+  const wPx = elem.w * SCALE;
+  const hPx = elem.h * SCALE;
+
+  // Jardín/Césped
+  const box = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+  box.setAttribute("x", (-wPx/2).toString());
+  box.setAttribute("y", (-hPx/2).toString());
+  box.setAttribute("width", wPx.toString());
+  box.setAttribute("height", hPx.toString());
+  box.setAttribute("class", "svg-garden-zone");
+  if (elem.color) {
+    box.setAttribute("fill", elem.color);
+  }
+  group.appendChild(box);
+
+  // Fuente ovalada (proporcional al tamaño del jardín)
+  const ftRx = elem.w * (5.0 / 24.0) * SCALE;
+  const ftRy = elem.h * (10.0 / 40.0) * SCALE;
+  const ftYOffset = -2.0 * (elem.h / 40.0) * SCALE;
+
+  const fountainOuter = document.createElementNS("http://www.w3.org/2000/svg", "ellipse");
+  fountainOuter.setAttribute("cx", "0");
+  fountainOuter.setAttribute("cy", ftYOffset.toString());
+  fountainOuter.setAttribute("rx", ftRx.toString());
+  fountainOuter.setAttribute("ry", ftRy.toString());
+  fountainOuter.setAttribute("class", "svg-fountain-outer");
+  group.appendChild(fountainOuter);
+  
+  const fountainInner = document.createElementNS("http://www.w3.org/2000/svg", "ellipse");
+  fountainInner.setAttribute("cx", "0");
+  fountainInner.setAttribute("cy", ftYOffset.toString());
+  fountainInner.setAttribute("rx", (ftRx * 0.45).toString());
+  fountainInner.setAttribute("ry", (ftRy * 0.45).toString());
+  fountainInner.setAttribute("fill", "#60a5fa");
+  group.appendChild(fountainInner);
+
+  // Etiqueta
+  const title = document.createElementNS("http://www.w3.org/2000/svg", "text");
+  title.setAttribute("x", "0");
+  title.setAttribute("y", (hPx/2 - 12).toString());
+  title.setAttribute("class", "svg-label");
+  title.setAttribute("text-anchor", "middle");
+  title.setAttribute("font-size", "11");
+  title.textContent = elem.name.toUpperCase();
+  group.appendChild(title);
+}
+
+function renderEntrance2D(group, elem) {
+  const wPx = elem.w * SCALE;
+  const hPx = elem.h * SCALE;
+
+  // Límite punteado
+  const boundary = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+  boundary.setAttribute("x", (-wPx/2).toString());
+  boundary.setAttribute("y", (-hPx/2).toString());
+  boundary.setAttribute("width", wPx.toString());
+  boundary.setAttribute("height", hPx.toString());
+  boundary.setAttribute("fill", "none");
+  boundary.setAttribute("stroke", "var(--svg-wall-stroke)");
+  boundary.setAttribute("stroke-width", "1.5");
+  boundary.setAttribute("stroke-dasharray", "8 4");
+  group.appendChild(boundary);
+
+  // Patio
+  const courtyard = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+  courtyard.setAttribute("x", (-wPx/2).toString());
+  courtyard.setAttribute("y", (-hPx/2 + 4.0 * SCALE).toString());
+  courtyard.setAttribute("width", (wPx - 4.0 * SCALE).toString());
+  courtyard.setAttribute("height", (hPx - 4.0 * SCALE).toString());
+  courtyard.setAttribute("fill", "none");
+  courtyard.setAttribute("stroke", "var(--svg-wall-stroke)");
+  courtyard.setAttribute("stroke-width", "0.8");
+  courtyard.setAttribute("stroke-dasharray", "4 4");
+  group.appendChild(courtyard);
+
+  // Pasillo
+  const walkway = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+  walkway.setAttribute("x", (wPx/2 - 4.0 * SCALE).toString());
+  walkway.setAttribute("y", (-hPx/2).toString());
+  walkway.setAttribute("width", (4.0 * SCALE).toString());
+  walkway.setAttribute("height", hPx.toString());
+  walkway.setAttribute("fill", "var(--svg-ramp)");
+  walkway.setAttribute("fill-opacity", "0.3");
+  walkway.setAttribute("stroke", "var(--svg-wall-stroke)");
+  walkway.setAttribute("stroke-width", "1");
+  group.appendChild(walkway);
+
+  // Rampa
+  const ramp = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+  ramp.setAttribute("x", (-wPx/2).toString());
+  ramp.setAttribute("y", (-hPx/2).toString());
+  ramp.setAttribute("width", (wPx - 4.0 * SCALE).toString());
+  ramp.setAttribute("height", (4.0 * SCALE).toString());
+  ramp.setAttribute("class", "svg-ramp-zone");
+  group.appendChild(ramp);
+
+  // Flecha
+  const arrow = document.createElementNS("http://www.w3.org/2000/svg", "path");
+  const ax = 0;
+  const ay = -hPx/2 + 2.0 * SCALE;
+  arrow.setAttribute("d", `M ${ax+15} ${ay-7} L ${ax} ${ay} L ${ax+15} ${ay+7} M ${ax} ${ay} L ${ax+25} ${ay}`);
+  arrow.setAttribute("stroke", "#ffffff");
+  arrow.setAttribute("stroke-width", "1.5");
+  arrow.setAttribute("fill", "none");
+  group.appendChild(arrow);
+
+  // Etiqueta
+  const title = document.createElementNS("http://www.w3.org/2000/svg", "text");
+  title.setAttribute("x", (wPx/2 - 2.0 * SCALE).toString());
+  title.setAttribute("y", "0");
+  title.setAttribute("class", "svg-label");
+  title.setAttribute("text-anchor", "middle");
+  title.setAttribute("font-size", "10");
+  title.setAttribute("transform", `rotate(90, ${wPx/2 - 2.0 * SCALE}, 0)`);
+  title.textContent = elem.name.toUpperCase();
+  group.appendChild(title);
+}
+
+function renderBathroom2D(group, elem) {
+  const wPx = elem.w * SCALE;
+  const hPx = elem.h * SCALE;
+
+  const box = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+  box.setAttribute("x", (-wPx/2).toString());
+  box.setAttribute("y", (-hPx/2).toString());
+  box.setAttribute("width", wPx.toString());
+  box.setAttribute("height", hPx.toString());
+  box.setAttribute("class", "svg-wc-zone");
+  if (elem.color) {
+    box.setAttribute("fill", elem.color);
+  }
+  group.appendChild(box);
+
+  const title = document.createElementNS("http://www.w3.org/2000/svg", "text");
+  title.setAttribute("x", "0");
+  title.setAttribute("y", "4");
+  title.setAttribute("class", "svg-label");
+  title.setAttribute("text-anchor", "middle");
+  title.setAttribute("font-size", "11");
+  title.textContent = elem.name.toUpperCase();
+  group.appendChild(title);
+}
+
+function renderStage2D(group, elem) {
+  const wPx = elem.w * SCALE;
+  const hPx = elem.h * SCALE;
+
+  const rx = elem.w * (8.0 / 14.0) * SCALE;
+  const ry = elem.h * (4.0 / 18.0) * SCALE;
+  const tBarH = elem.h * (4.0 / 18.0) * SCALE;
+  const tBarW = wPx;
+  const cwW = elem.w * (2.0 / 14.0) * SCALE;
+
+  // Escenario
+  const stage = document.createElementNS("http://www.w3.org/2000/svg", "path");
+  stage.setAttribute("d", `M ${-rx} ${-hPx/2} A ${rx} ${ry} 0 0 0 ${rx} ${-hPx/2} Z`);
+  stage.setAttribute("class", "svg-stage-zone");
+  if (elem.color) {
+    stage.setAttribute("fill", elem.color);
+  }
+  group.appendChild(stage);
+
+  // Pasarela
+  const catwalk = document.createElementNS("http://www.w3.org/2000/svg", "path");
+  catwalk.setAttribute("d", `
+    M ${-cwW/2} ${-hPx/2 + ry} 
+    L ${-cwW/2} ${hPx/2 - tBarH}
+    L ${-tBarW/2} ${hPx/2 - tBarH}
+    L ${-tBarW/2} ${hPx/2}
+    L ${tBarW/2} ${hPx/2}
+    L ${tBarW/2} ${hPx/2 - tBarH}
+    L ${cwW/2} ${hPx/2 - tBarH}
+    L ${cwW/2} ${-hPx/2 + ry} Z
+  `);
+  catwalk.setAttribute("class", "svg-catwalk-zone");
+  if (elem.color) {
+    catwalk.setAttribute("fill", elem.color);
+  }
+  group.appendChild(catwalk);
+
+  // Etiquetas
+  const stageTxt = document.createElementNS("http://www.w3.org/2000/svg", "text");
+  stageTxt.setAttribute("x", "0");
+  stageTxt.setAttribute("y", (-hPx/2 + ry/2 + 2).toString());
+  stageTxt.setAttribute("class", "svg-label");
+  stageTxt.setAttribute("text-anchor", "middle");
+  stageTxt.textContent = "ESCENARIO";
+  group.appendChild(stageTxt);
+
+  const catwalkTxt = document.createElementNS("http://www.w3.org/2000/svg", "text");
+  catwalkTxt.setAttribute("x", "0");
+  catwalkTxt.setAttribute("y", (hPx/2 - tBarH/2 + 3).toString());
+  catwalkTxt.setAttribute("class", "svg-label");
+  catwalkTxt.setAttribute("text-anchor", "middle");
+  catwalkTxt.textContent = "PASARELA";
+  group.appendChild(catwalkTxt);
 }
 
 /* --- EVENTOS DE ARRASTRE DE ELEMENTOS --- */

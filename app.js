@@ -5,7 +5,7 @@
  * el panel de control de temas, la caja de herramientas y el inspector.
  */
 
-import { INITIAL_ELEMENTS, TOOLBOX_TEMPLATES, CANVAS_WIDTH, CANVAS_HEIGHT, STATIC_STRUCTURES } from "./elements.js";
+import { INITIAL_ELEMENTS, TOOLBOX_TEMPLATES, CANVAS_WIDTH, CANVAS_HEIGHT } from "./elements.js";
 import { init2D, updateElements2D, selectElement2D, setGridSnap, zoomIn, zoomOut, resetZoom } from "./editor2d.js";
 import { init3D, destroy3D, syncWithData, selectElement3D, resetCamera3D } from "./visualizer3d.js";
 
@@ -24,10 +24,27 @@ document.addEventListener("DOMContentLoaded", () => {
   if (savedLayout) {
     try {
       state.elements = JSON.parse(savedLayout);
-      // Migración/Compatibilidad: Si no hay puertas en el diseño guardado, agregar las puertas por defecto
+      // Migración/Compatibilidad: Agregar elementos por defecto que falten (puertas y estructuras principales)
+      let hasModified = false;
+      const idsToCheck = ["salon-main", "garden-main", "entrance-main", "bathroom-left", "bathroom-right", "stage-main"];
+      
       if (!state.elements.some(e => e.type === "door")) {
         const defaultDoors = INITIAL_ELEMENTS.filter(e => e.type === "door");
         state.elements = [...state.elements, ...JSON.parse(JSON.stringify(defaultDoors))];
+        hasModified = true;
+      }
+      
+      idsToCheck.forEach(id => {
+        if (!state.elements.some(e => e.id === id)) {
+          const defaultElem = INITIAL_ELEMENTS.find(e => e.id === id);
+          if (defaultElem) {
+            state.elements.push(JSON.parse(JSON.stringify(defaultElem)));
+            hasModified = true;
+          }
+        }
+      });
+
+      if (hasModified) {
         localStorage.setItem("cc_presidente_layout", JSON.stringify(state.elements));
       }
     } catch (e) {
@@ -189,6 +206,10 @@ function addNewElement(tmpl) {
 function cloneElement() {
   if (!state.selectedElement) return;
   const elem = state.selectedElement;
+  if (elem.removable === false) {
+    showToast("Este elemento esencial no se puede duplicar");
+    return;
+  }
   
   const timestamp = Date.now();
   const newId = `${elem.type}-clone-${timestamp}`;
@@ -207,6 +228,10 @@ function cloneElement() {
 
 function deleteElement() {
   if (!state.selectedElement) return;
+  if (state.selectedElement.removable === false) {
+    showToast("Este elemento esencial no se puede eliminar");
+    return;
+  }
   const id = state.selectedElement.id;
   
   state.elements = state.elements.filter(e => e.id !== id);
@@ -450,6 +475,16 @@ function populateInspector(elem) {
   document.getElementById("prop-rotation").value = elem.rotation || 0;
   document.getElementById("prop-color").value = elem.color;
 
+  const btnClone = document.getElementById("btn-clone-prop");
+  const btnDelete = document.getElementById("btn-delete-prop");
+  if (elem.removable === false) {
+    if (btnClone) btnClone.style.display = "none";
+    if (btnDelete) btnDelete.style.display = "none";
+  } else {
+    if (btnClone) btnClone.style.display = "";
+    if (btnDelete) btnDelete.style.display = "";
+  }
+
   const groupExhibitor = document.getElementById("group-prop-exhibitor");
   const groupText = document.getElementById("group-prop-text");
   const groupChairs = document.getElementById("group-prop-chairs");
@@ -486,24 +521,21 @@ function closeInspector() {
   else selectElement3D(null);
 }
 
-/* --- CALCULO LOGISTICO DE DISTANCIAS REALES --- */
 function calculateLogisticsDistances(elem) {
-  const stgX = STATIC_STRUCTURES.stage.x;
-  const stgY = STATIC_STRUCTURES.stage.y;
-  
-  const wcLX = STATIC_STRUCTURES.bathrooms[0].x + STATIC_STRUCTURES.bathrooms[0].w/2;
-  const wcLY = STATIC_STRUCTURES.bathrooms[0].y + STATIC_STRUCTURES.bathrooms[0].h/2;
-  const wcRX = STATIC_STRUCTURES.bathrooms[1].x + STATIC_STRUCTURES.bathrooms[1].w/2;
-  const wcRY = STATIC_STRUCTURES.bathrooms[1].y + STATIC_STRUCTURES.bathrooms[1].h/2;
-  const wcCenter = { x: (wcLX + wcRX)/2, y: (wcLY + wcRY)/2 }; // Promedio o más cercano
-  
-  const rampX = STATIC_STRUCTURES.entrance.rampX;
-  const rampY = STATIC_STRUCTURES.entrance.rampY + STATIC_STRUCTURES.entrance.rampWidth/2;
+  const stage = state.elements.find(e => e.type === "stage") || { x: 28.0, y: 21.0 };
+  const wcLeft = state.elements.find(e => e.id === "bathroom-left") || { x: 9.0, y: 14.0 };
+  const wcRight = state.elements.find(e => e.id === "bathroom-right") || { x: 47.0, y: 14.0 };
+  const entrance = state.elements.find(e => e.type === "entrance") || { x: 58.0, y: 62.0 };
 
-  const distStage = Math.hypot(elem.x - stgX, elem.y - stgY);
-  const distWcL = Math.hypot(elem.x - wcLX, elem.y - wcLY);
-  const distWcR = Math.hypot(elem.x - wcRX, elem.y - wcRY);
+  const distStage = Math.hypot(elem.x - stage.x, elem.y - stage.y);
+  
+  const distWcL = Math.hypot(elem.x - wcLeft.x, elem.y - wcLeft.y);
+  const distWcR = Math.hypot(elem.x - wcRight.x, elem.y - wcRight.y);
   const distWc = Math.min(distWcL, distWcR);
+  
+  const rampX = entrance.x - entrance.w / 2;
+  const rampY = entrance.y - entrance.h / 2 + 2.0;
+  
   const distEntrance = Math.hypot(elem.x - rampX, elem.y - rampY);
 
   document.getElementById("dist-stage-val").textContent = `${distStage.toFixed(1)} metros`;
