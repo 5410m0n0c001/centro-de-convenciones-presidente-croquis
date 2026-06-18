@@ -23,7 +23,7 @@
 </head>
 <body data-theme="premium">
 
-  <!-- PANTALLA DE BIENVENIDA (Comienza la Experiencia del Usuario) -->
+  <!-- PANTALLA DE BIENVENIDA -->
   <div class="welcome-overlay" id="welcome-overlay">
     <div class="welcome-box">
       <div class="welcome-logo">CC PRESIDENTE</div>
@@ -32,7 +32,7 @@
         Bienvenido al Planificador Digital del **Centro de Convenciones Presidente** en Cuernavaca. 
         Hemos digitalizado el croquis base a escala y lo hemos integrado con un motor de visualización interactivo.
         <br><br>
-        Esta herramienta te permite maquetar el espacio colocando **stands para expositores** y **mobiliario de gala** directamente sobre la imagen del croquis base, con ajuste magnético, cálculo automático de capacidades y previsualización inmersiva en 3D.
+        Esta herramienta te permite maquetar el espacio colocando **stands para expositores** y **mobiliario de gala** directamente sobre el plano vectorial digitalizado, con ajuste magnético, cálculo automático de capacidades y previsualización inmersiva en 3D.
       </div>
       <button class="welcome-btn" id="welcome-close-btn">Comenzar Distribución</button>
     </div>
@@ -40,23 +40,21 @@
 
   <div class="app-container">
 
-    <!-- BACKDROP PARA MÓVILES (Cerrar menú flotante al hacer clic fuera) -->
+    <!-- BACKDROP PARA MÓVILES -->
     <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
 
-    <!-- BOTÓN DE MENÚ PARA MÓVILES (Para abrir panel izquierdo) -->
+    <!-- BOTÓN DE MENÚ PARA MÓVILES -->
     <button class="mobile-toggle-btn" id="mobile-toggle-btn" title="Menú de Herramientas">
       <i class="fa-solid fa-bars"></i>
     </button>
 
     <!-- BARRA LATERAL IZQUIERDA: CONTROLES, HERRAMIENTAS Y MÉTRICAS -->
     <aside class="sidebar">
-      <!-- Encabezado de la locación -->
       <div class="brand">
         <h1>CC Presidente</h1>
         <span>Primavera Events Group</span>
       </div>
 
-      <!-- Botón cerrar exclusivo para versión móvil -->
       <button class="mobile-close-sidebar-btn" title="Cerrar Menú">
         <i class="fa-solid fa-xmark"></i> Cerrar Menú
       </button>
@@ -98,11 +96,11 @@
         <div>
           <h3 class="section-title">Catálogo de Elementos</h3>
           <div class="tools-grid" id="toolbox-grid">
-            <!-- Cargado dinámicamente desde app.js (elements.js) -->
+            <!-- Cargado dinámicamente desde app.js -->
           </div>
         </div>
 
-        <!-- Gestor de Capas y Opacidad -->
+        <!-- Gestor de Capas y Ajustes -->
         <div>
           <h3 class="section-title">Capas y Ajustes</h3>
           <div class="layers-list">
@@ -113,14 +111,6 @@
                 <span class="slider"></span>
               </span>
             </label>
-            
-            <div class="slider-container">
-              <div class="slider-label-row">
-                <span>Opacidad Croquis Base</span>
-                <span id="bg-opacity-val">55%</span>
-              </div>
-              <input type="range" id="bg-opacity-input" min="0" max="1" step="0.05" value="0.55" class="range-input">
-            </div>
           </div>
         </div>
 
@@ -141,13 +131,13 @@
               <span class="metric-lbl">Stands Activos</span>
             </div>
             <div class="metric-card">
-              <span class="metric-val">4,800 m²</span>
+              <span class="metric-val">6,300 m²</span>
               <span class="metric-lbl">Terreno Total</span>
             </div>
           </div>
         </div>
 
-        <!-- Acciones del Plano (Importar/Exportar/Limpiar) -->
+        <!-- Acciones del Plano -->
         <div>
           <h3 class="section-title">Acciones del Diseño</h3>
           <div class="sidebar-actions">
@@ -177,7 +167,7 @@
 
       <!-- VISTA 2D (Lienzo SVG) -->
       <div id="container-2d" class="canvas-container active">
-        <!-- Encabezado de impresión comercial (Oculto en pantalla, visible al imprimir) -->
+        <!-- Encabezado de impresión comercial -->
         <div class="print-ficha-header print-only">
           <div class="print-header-top">
             <div class="print-header-title">
@@ -196,42 +186,33 @@
             </div>
             <div class="print-info-card">
               <strong>Superficie Terreno</strong>
-              <span>60m x 80m (4,800 m²)</span>
+              <span>70m x 90m (6,300 m²)</span>
             </div>
             <div class="print-info-card">
               <strong>Estatus de Entrega</strong>
-              <span>Distribución y Maquetación Premium</span>
+              <span>Plano Vectorial Autónomo</span>
             </div>
           </div>
         </div>
 
         <!-- SVG Plano de Planta Arquitectónico -->
-        <!-- Relación 60m x 80m en escala 1m=20px -> viewBox 0 0 1200 1600 -->
-        <svg id="event-svg" viewBox="0 0 1200 1600" xmlns="http://www.w3.org/2000/svg">
-          <!-- Cuadrícula de calibración (Definida para snapping a rejilla) -->
+        <!-- Relación 70m x 90m en escala 1m=15px -> viewBox 0 0 1050 1350 -->
+        <svg id="event-svg" viewBox="0 0 1050 1350" xmlns="http://www.w3.org/2000/svg">
           <defs>
-            <pattern id="canvas-grid" width="20" height="20" patternUnits="userSpaceOnUse">
-              <path d="M 20 0 L 0 0 0 20" fill="none" stroke="rgba(255,255,255,0.04)" stroke-width="0.5" />
-            </pattern>
-            <!-- Cuadrícula para temas claros -->
-            <pattern id="canvas-grid-light" width="20" height="20" patternUnits="userSpaceOnUse">
-              <path d="M 20 0 L 0 0 0 20" fill="none" stroke="rgba(0,0,0,0.05)" stroke-width="0.5" />
+            <pattern id="canvas-grid" width="15" height="15" patternUnits="userSpaceOnUse">
+              <path d="M 15 0 L 0 0 0 15" fill="none" stroke="rgba(255,255,255,0.04)" stroke-width="0.5" />
             </pattern>
           </defs>
 
           <!-- Grupo Principal del Viewport (Para Zoom & Panning) -->
           <g id="svg-zoom-group">
-            <!-- CAPA 0: Croquis Base.jpeg de fondo -->
-            <g id="svg-bg-group"></g>
-            
             <!-- CAPA 1: Rejilla técnica -->
-            <rect width="1200" height="1600" fill="url(#canvas-grid)" id="svg-grid-overlay" pointer-events="none" />
+            <rect width="1050" height="1350" fill="url(#canvas-grid)" id="svg-grid-overlay" pointer-events="none" />
             
             <!-- CAPA 2: Límite del Terreno Perimetral -->
-            <!-- Contorno negro que representa el área total del terreno -->
-            <rect x="2" y="2" width="1196" height="1596" fill="none" stroke="#000000" stroke-width="4" id="svg-property-boundary" />
+            <rect x="2" y="2" width="1046" height="1346" fill="none" stroke="#000000" stroke-width="4" id="svg-property-boundary" />
             
-            <!-- CAPA 3: Estructuras Fijas (Muros, WC, Rampa, Escenario, Pasarela, Fuente) -->
+            <!-- CAPA 3: Estructuras Fijas del Salón -->
             <g id="svg-static-group"></g>
             
             <!-- CAPA 4: Muebles y Stands Colocados -->
@@ -252,7 +233,7 @@
         </div>
       </div>
 
-      <!-- VISTA 3D (Lienzo WebGL Three.js) -->
+      <!-- VISTA 3D -->
       <div id="container-3d" class="canvas-container">
         <!-- HUD de navegación 3D -->
         <div class="canvas-hud">
@@ -276,25 +257,21 @@
         </button>
       </div>
 
-      <!-- Formulario del Inspector -->
       <div class="form-group">
         <label for="prop-name">Etiqueta del Objeto</label>
         <input type="text" id="prop-name" class="form-input">
       </div>
 
-      <!-- Condicional: Nombre del Expositor (Stand) -->
       <div class="form-group" id="group-prop-exhibitor" style="display: none;">
         <label for="prop-exhibitor">Nombre del Expositor</label>
         <input type="text" id="prop-exhibitor" class="form-input" placeholder="Nombre de la marca o empresa">
       </div>
 
-      <!-- Condicional: Letras Gigantes Text -->
       <div class="form-group" id="group-prop-text" style="display: none;">
         <label for="prop-text">Texto Letras</label>
         <input type="text" id="prop-text" class="form-input" placeholder="LOVE" maxlength="6">
       </div>
 
-      <!-- Dimensiones y Posicionamiento exacto -->
       <div class="form-row-2">
         <div class="form-group">
           <label for="prop-x">Posición X (m)</label>
@@ -322,7 +299,6 @@
         <input type="number" id="prop-rotation" class="form-input" min="0" max="360" step="15" value="0">
       </div>
 
-      <!-- Condicional: Sillas y Forma (Mesas) -->
       <div class="form-group" id="group-prop-shape" style="display: none;">
         <label for="prop-shape">Forma Mesa</label>
         <select id="prop-shape" class="form-select">
@@ -348,7 +324,7 @@
         <input type="color" id="prop-color" class="form-input" value="#b45309" style="height: 40px; padding: 2px; cursor: pointer;">
       </div>
 
-      <!-- Distancias Logísticas Reales (Logistics & circulation metrics) -->
+      <!-- Distancias Logísticas Reales -->
       <div class="info-box">
         <div><strong>Cálculos Logísticos:</strong></div>
         <div style="margin-top: 6px; display: flex; justify-content: space-between;">
@@ -378,14 +354,12 @@
 
   </div>
 
-  <!-- Contenedor para notificaciones Toast -->
   <div id="toast" class="toast-notification">Notificación</div>
 
-  <!-- Carga de librerías CDN para soporte 3D fotorrealista -->
+  <!-- Carga de librerías CDN -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 
-  <!-- Script principal del orquestador -->
   <script type="module" src="app.js"></script>
 </body>
 </html>

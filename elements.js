@@ -1,115 +1,116 @@
 /**
  * elements.js
- * Definición del terreno (60m x 80m), las estructuras fijas del Centro de Convenciones Presidente
- * (muros, baños, puertas, escenario con pasarela, rampa y fuente) y plantillas del catálogo.
- * Escala: 1m = 20px en el canvas SVG (1200 x 1600 px).
+ * Definición del terreno (70m x 90m), las estructuras fijas del Centro de Convenciones Presidente
+ * digitalizadas del croquis a escala.
+ * Escala: 1m = 15px en el canvas SVG (1050 x 1350 px).
  */
 
-export const CANVAS_WIDTH = 60.0;  // 60 metros de ancho
-export const CANVAS_HEIGHT = 80.0; // 80 metros de largo (eje Y en 2D, eje Z en 3D)
+export const CANVAS_WIDTH = 70.0;  // 70 metros de ancho
+export const CANVAS_HEIGHT = 90.0; // 90 metros de largo (eje Y en 2D, eje Z en 3D)
 
 // Dimensiones y posición del Salón Techado principal
 export const SALON = {
   x: 10.0,      // Comienza en 10m
-  y: 18.0,      // Comienza en 18m
-  width: 40.0,  // 40m de ancho
-  height: 44.0  // 44m de largo (hasta los 62m)
+  y: 12.0,      // Comienza en 12m
+  width: 36.0,  // 36m de ancho (24 - 6 = 18 cuadrados * 2m = 36m)
+  height: 58.0  // 58m de largo (36 - 7 = 29 cuadrados * 2m = 58m)
 };
 
-// Estructuras fijas iniciales (muros, WC, escenario, rampa, fuente, etc.)
+// Estructuras fijas (muros, WC, escenario, rampa, fuente)
 export const STATIC_STRUCTURES = {
   // Salón Techado (Muros)
   walls: [
     // Muro Superior
-    { x1: 10.0, y1: 18.0, x2: 50.0, y2: 18.0 },
+    { x1: 10.0, y1: 12.0, x2: 46.0, y2: 12.0 },
     // Muro Izquierdo
-    { x1: 10.0, y1: 18.0, x2: 10.0, y2: 62.0 },
-    // Muro Derecho
-    { x1: 50.0, y1: 18.0, x2: 50.0, y2: 62.0 },
-    // Muro Inferior (dividido para dejar espacio a la entrada principal)
-    { x1: 10.0, y1: 62.0, x2: 26.0, y2: 62.0 },
-    { x1: 34.0, y1: 62.0, x2: 50.0, y2: 62.0 }
+    { x1: 10.0, y1: 12.0, x2: 10.0, y2: 70.0 },
+    // Muro Derecho (dividido para dejar espacio al acceso de la rampa E2)
+    { x1: 46.0, y1: 12.0, x2: 46.0, y2: 54.0 },
+    { x1: 46.0, y1: 58.0, x2: 46.0, y2: 70.0 },
+    // Muro Inferior
+    { x1: 10.0, y1: 70.0, x2: 46.0, y2: 70.0 }
   ],
   
-  // Baños (dos marcados como WC en el croquis)
+  // Baños WC exteriores (esquinas superiores del salón)
   bathrooms: [
-    { id: "wc-left", name: "WC Damas", x: 10.2, y: 18.2, w: 6.0, h: 5.0, label: "WC" },
-    { id: "wc-right", name: "WC Caballeros", x: 43.8, y: 18.2, w: 6.0, h: 5.0, label: "WC" }
+    { id: "wc-left", name: "WC", x: 8.0, y: 12.0, w: 2.0, h: 4.0, label: "WC" },
+    { id: "wc-right", name: "WC", x: 46.0, y: 12.0, w: 2.0, h: 4.0, label: "WC" }
   ],
 
   // Escenario (Stage) en media luna y Pasarela en T
   stage: {
-    // Escenario principal (media luna en la parte superior central)
-    x: 30.0, // Centro
-    y: 24.0, // Posición vertical
+    x: 28.0, // Centro del salón (10 + 36/2)
+    y: 12.0, // Al fondo
     radiusX: 8.0,
     radiusY: 4.0,
-    heightZ: 0.8, // Altura 3D
+    heightZ: 0.8,
     
-    // Pasarela conectada (catwalk en T que se desprende del escenario)
+    // Pasarela conectada (catwalk en T)
     catwalk: {
-      x: 30.0,      // Centrada
-      y: 28.0,      // Empieza al final del escenario
-      w: 2.0,       // Ancho de la pasarela
-      h: 8.0,       // Largo de la pasarela
-      tBarW: 6.0,   // Ancho del travesaño de la T
-      tBarH: 1.8,   // Grosor del travesaño de la T
-      heightZ: 0.6  // Ligeramente más baja que el escenario
+      x: 28.0,      // Centrada
+      y: 16.0,      // Arranca al final del escenario
+      w: 2.0,       // Ancho pasarela (tallo de la T)
+      h: 14.0,      // Largo pasarela total
+      tBarW: 14.0,  // Ancho barra horizontal de la T
+      tBarH: 4.0,   // Grosor barra horizontal de la T
+      heightZ: 0.6
     }
   },
 
-  // Rampa de Acceso y Entrada Principal (en la abertura del muro inferior)
+  // Entrada Principal y rampa en el cuadrante inferior derecho
   entrance: {
-    x: 30.0,
-    y: 62.0,
-    w: 8.0,
-    h: 6.0, // Se extiende hacia afuera (jardín)
-    rampLength: 6.0,
-    rampWidth: 4.0,
-    rampHeightZ: 0.4 // Sube desde 0.0 hasta 0.4m (nivel del salón)
+    x: 57.0, // Centro del cuadrado
+    y: 61.0,
+    w: 18.0, // Ancho del cuadrado
+    h: 18.0, // Largo del cuadrado
+    rampX: 48.0, // Inicio de la rampa en la pared del salón
+    rampY: 54.0, 
+    rampWidth: 4.0, // Ancho de la rampa (cabe por la puerta E2)
+    rampLength: 10.0, // Se extiende hacia la derecha
+    rampHeightZ: 0.4
   },
 
-  // Área de Jardín y Fuente
+  // Área de Fuente y Jardín derecho
   garden: {
-    x: 10.0,
-    y: 62.0,
-    w: 40.0,
-    h: 16.0, // Espacio verde en la parte inferior del terreno
+    x: 46.0,
+    y: 12.0,
+    w: 24.0,
+    h: 40.0,
     fountain: {
-      x: 43.0,
-      y: 70.0,
-      radius: 3.5,
+      x: 58.0,
+      y: 30.0,
+      radiusX: 5.0, // Radio X de la fuente (ovalada)
+      radiusY: 10.0, // Radio Y de la fuente
       heightZ: 0.5
     }
   },
 
-  // Puertas de acceso (e1 a e7)
+  // Puertas de acceso (e1 a e7) exactamente como en el dibujo
   doors: [
-    { id: "e1", name: "Acceso E1", x: 10.0, y: 28.0, w: 2.0, angle: 90, side: "left" },
-    { id: "e2", name: "Acceso E2", x: 10.0, y: 44.0, w: 2.0, angle: 90, side: "left" },
-    { id: "e3", name: "Acceso E3", x: 10.0, y: 56.0, w: 2.0, angle: 90, side: "left" },
-    { id: "e4", name: "Acceso E4", x: 50.0, y: 28.0, w: 2.0, angle: 270, side: "right" },
-    { id: "e5", name: "Acceso E5", x: 50.0, y: 44.0, w: 2.0, angle: 270, side: "right" },
-    { id: "e6", name: "Acceso E6", x: 50.0, y: 56.0, w: 2.0, angle: 270, side: "right" },
-    { id: "e7", name: "Acceso E7 (Principal)", x: 30.0, y: 62.0, w: 8.0, angle: 0, side: "bottom" }
+    { id: "e1", name: "E1", x: 46.0, y: 22.0, w: 2.0, angle: 270, side: "right" },
+    { id: "e2", name: "E2 (Rampa)", x: 46.0, y: 54.0, w: 4.0, angle: 270, side: "right" },
+    { id: "e3", name: "E3", x: 38.0, y: 70.0, w: 2.0, angle: 180, side: "bottom" },
+    { id: "e4", name: "E4", x: 28.0, y: 70.0, w: 2.0, angle: 180, side: "bottom" },
+    { id: "e5", name: "E5", x: 18.0, y: 70.0, w: 2.0, angle: 180, side: "bottom" },
+    { id: "e6", name: "E6", x: 10.0, y: 54.0, w: 2.0, angle: 90, side: "left" },
+    { id: "e7", name: "E7", x: 10.0, y: 22.0, w: 2.0, angle: 90, side: "left" }
   ]
 };
 
-// Elementos iniciales por defecto en el plano (pueden ser modificados por el usuario)
+// Elementos iniciales de muestra
 export const INITIAL_ELEMENTS = [
-  // Stand de muestra para iniciar
   {
     id: "stand-init-1",
     type: "stand",
     name: "Stand 01",
-    exhibitor: "Expositor Premium",
+    exhibitor: "Expositor Moda",
     x: 14.0,
-    y: 36.0,
+    y: 38.0,
     w: 4.0,
     h: 3.0,
     shape: "rectangle",
     rotation: 0,
-    color: "#0f5132",
+    color: "#065f46",
     editable: true,
     removable: true
   },
@@ -117,25 +118,23 @@ export const INITIAL_ELEMENTS = [
     id: "stand-init-2",
     type: "stand",
     name: "Stand 02",
-    exhibitor: "Expositor Moda",
-    x: 46.0,
-    y: 36.0,
+    exhibitor: "Expositor Joyería",
+    x: 42.0,
+    y: 38.0,
     w: 4.0,
     h: 3.0,
     shape: "rectangle",
     rotation: 0,
-    color: "#7c1a22",
+    color: "#78350f",
     editable: true,
     removable: true
   },
-
-  // Pista de baile central frente a la pasarela
   {
     id: "dancefloor-main",
     type: "dancefloor",
     name: "Pista de Baile",
-    x: 30.0,
-    y: 44.0,
+    x: 28.0,
+    y: 48.0,
     w: 8.0,
     h: 6.0,
     shape: "rectangle",
@@ -144,14 +143,12 @@ export const INITIAL_ELEMENTS = [
     editable: true,
     removable: true
   },
-
-  // Área de DJ
   {
     id: "dj-main",
     type: "dj",
-    name: "Cabina DJ / Audio",
-    x: 30.0,
-    y: 52.0,
+    name: "Cabina DJ",
+    x: 28.0,
+    y: 56.0,
     w: 4.0,
     h: 1.5,
     shape: "rectangle",
@@ -160,13 +157,10 @@ export const INITIAL_ELEMENTS = [
     editable: true,
     removable: true
   },
-
-  // Mesas iniciales
-  { id: "table-1", type: "table", name: "Mesa 1", x: 20.0, y: 44.0, w: 1.6, h: 1.6, shape: "circle", rotation: 0, chairs: 10, color: "#b45309", editable: true, removable: true },
-  { id: "table-2", type: "table", name: "Mesa 2", x: 40.0, y: 44.0, w: 1.6, h: 1.6, shape: "circle", rotation: 0, chairs: 10, color: "#b45309", editable: true, removable: true }
+  { id: "table-1", type: "table", name: "Mesa 1", x: 18.0, y: 48.0, w: 1.6, h: 1.6, shape: "circle", rotation: 0, chairs: 10, color: "#b45309", editable: true, removable: true },
+  { id: "table-2", type: "table", name: "Mesa 2", x: 38.0, y: 48.0, w: 1.6, h: 1.6, shape: "circle", rotation: 0, chairs: 10, color: "#b45309", editable: true, removable: true }
 ];
 
-// Catálogo de plantillas para la caja de herramientas (Toolbox)
 export const TOOLBOX_TEMPLATES = [
   {
     type: "stand",

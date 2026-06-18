@@ -1,13 +1,13 @@
 /**
  * editor2d.js
  * Motor interactivo 2D para el plano en planta (SVG).
- * Maneja el dibujo de las estructuras fijas, la superposición de croquis base.jpeg,
+ * Maneja el dibujo de las estructuras fijas vectoriales digitalizadas a escala,
  * el arrastre de objetos, ajuste a rejilla (10cm), selección y transformaciones de zoom/panning.
  */
 
 import { CANVAS_WIDTH, CANVAS_HEIGHT, STATIC_STRUCTURES } from "./elements.js";
 
-const SCALE = 20; // 1m = 20px
+const SCALE = 15; // 1m = 15px (70m x 90m = 1050px x 1350px)
 let activeSvg = null;
 let currentElements = [];
 let selectedElementId = null;
@@ -17,12 +17,11 @@ let dragOffset = { x: 0, y: 0 };
 let useGrid = true;
 const GRID_SNAP_VAL = 0.1; // Ajuste cada 10 cm (0.1m)
 
-// Variables de visualización
+// Variables de visualización (Zoom & Panning)
 let zoom = 1.0;
 let pan = { x: 0, y: 0 };
 let isPanning = false;
 let startPan = { x: 0, y: 0 };
-let bgOpacity = 0.55; // Opacidad por defecto del croquis base
 
 // Callbacks para comunicar con app.js
 let onSelectedCallback = null;
@@ -60,17 +59,9 @@ export function selectElement2D(elementId) {
 
 export function setGridSnap(active) {
   useGrid = active;
-  const gridPattern = document.getElementById("canvas-grid");
-  if (gridPattern) {
-    gridPattern.style.opacity = active ? "1" : "0";
-  }
-}
-
-export function setBgOpacity(opacityVal) {
-  bgOpacity = opacityVal;
-  const bgImg = document.getElementById("svg-bg-image");
-  if (bgImg) {
-    bgImg.setAttribute("opacity", opacityVal);
+  const gridOverlay = document.getElementById("svg-grid-overlay");
+  if (gridOverlay) {
+    gridOverlay.style.opacity = active ? "1" : "0";
   }
 }
 
@@ -80,7 +71,7 @@ function getMouseCoords(evt) {
   const x = evt.clientX - rect.left;
   const y = evt.clientY - rect.top;
   
-  // Convertir a coordenadas nativas de viewBox (1200 x 1600)
+  // Convertir a coordenadas nativas de viewBox (1050 x 1350)
   const svgX = (x / rect.width) * (CANVAS_WIDTH * SCALE);
   const svgY = (y / rect.height) * (CANVAS_HEIGHT * SCALE);
   
@@ -104,17 +95,17 @@ function applyZoomPan() {
 export function zoomIn() {
   const oldZoom = zoom;
   zoom = Math.min(3.0, zoom + 0.15);
-  // Zoom enfocado en el centro geométrico del plano (600, 800)
-  pan.x = 600 - (600 - pan.x) * (zoom / oldZoom);
-  pan.y = 800 - (800 - pan.y) * (zoom / oldZoom);
+  // Zoom centrado en el centro geométrico del plano (525, 675)
+  pan.x = 525 - (525 - pan.x) * (zoom / oldZoom);
+  pan.y = 675 - (675 - pan.y) * (zoom / oldZoom);
   applyZoomPan();
 }
 
 export function zoomOut() {
   const oldZoom = zoom;
   zoom = Math.max(0.4, zoom - 0.15);
-  pan.x = 600 - (600 - pan.x) * (zoom / oldZoom);
-  pan.y = 800 - (800 - pan.y) * (zoom / oldZoom);
+  pan.x = 525 - (525 - pan.x) * (zoom / oldZoom);
+  pan.y = 675 - (675 - pan.y) * (zoom / oldZoom);
   applyZoomPan();
 }
 
@@ -173,7 +164,6 @@ function setupCanvasEvents() {
 
   // 4. Desplazamiento del lienzo 2D (Panning)
   activeSvg.addEventListener("mousedown", (evt) => {
-    // Solo panea si NO estamos tocando un elemento arrastrable
     const draggable = evt.target.closest(".draggable");
     if (!draggable) {
       isPanning = true;
@@ -204,25 +194,10 @@ function setupCanvasEvents() {
 
 /* --- RENDERIZADOR GENERAL DE CAPAS --- */
 function render() {
-  // 1. Dibujar Imagen Base / Croquis (como fondo)
-  const bgGroup = document.getElementById("svg-bg-group");
-  if (bgGroup) {
-    bgGroup.innerHTML = "";
-    const bgImg = document.createElementNS("http://www.w3.org/2000/svg", "image");
-    bgImg.setAttribute("id", "svg-bg-image");
-    bgImg.setAttribute("href", "croquis base.jpeg");
-    bgImg.setAttribute("x", "0");
-    bgImg.setAttribute("y", "0");
-    bgImg.setAttribute("width", (CANVAS_WIDTH * SCALE).toString());
-    bgImg.setAttribute("height", (CANVAS_HEIGHT * SCALE).toString());
-    bgImg.setAttribute("opacity", bgOpacity.toString());
-    bgGroup.appendChild(bgImg);
-  }
-
-  // 2. Dibujar Estructuras Fijas del Salón
+  // 1. Dibujar Estructuras Fijas del Salón
   renderStaticStructures();
 
-  // 3. Dibujar Elementos Dinámicos (Stands, Mesas, Mobiliario)
+  // 2. Dibujar Elementos Dinámicos
   const elementsGroup = document.getElementById("svg-elements-group");
   if (!elementsGroup) return;
   
@@ -278,7 +253,7 @@ function render() {
   });
 }
 
-/* --- RENDERIZACIÓN DE COMPONENTES FIJOS (MUROS, BAÑOS, ESCENARIO) --- */
+/* --- RENDERIZACIÓN DE COMPONENTES FIJOS --- */
 function renderStaticStructures() {
   const staticGroup = document.getElementById("svg-static-group");
   if (!staticGroup) return;
@@ -296,41 +271,62 @@ function renderStaticStructures() {
 
   // B) Dibujar Fuente en el jardín
   const ft = gd.fountain;
-  const fountainOuter = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+  const fountainOuter = document.createElementNS("http://www.w3.org/2000/svg", "ellipse");
   fountainOuter.setAttribute("cx", (ft.x * SCALE).toString());
   fountainOuter.setAttribute("cy", (ft.y * SCALE).toString());
-  fountainOuter.setAttribute("r", (ft.radius * SCALE).toString());
+  fountainOuter.setAttribute("rx", (ft.radiusX * SCALE).toString());
+  fountainOuter.setAttribute("ry", (ft.radiusY * SCALE).toString());
   fountainOuter.setAttribute("class", "svg-fountain-outer");
   staticGroup.appendChild(fountainOuter);
   
-  const fountainInner = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+  const fountainInner = document.createElementNS("http://www.w3.org/2000/svg", "ellipse");
   fountainInner.setAttribute("cx", (ft.x * SCALE).toString());
   fountainInner.setAttribute("cy", (ft.y * SCALE).toString());
-  fountainInner.setAttribute("r", (ft.radius * 0.4 * SCALE).toString());
+  fountainInner.setAttribute("rx", (ft.radiusX * 0.4 * SCALE).toString());
+  fountainInner.setAttribute("ry", (ft.radiusY * 0.4 * SCALE).toString());
   fountainInner.setAttribute("fill", "#60a5fa");
   staticGroup.appendChild(fountainInner);
 
-  // C) Dibujar Rampa y Lobby de Entrada
+  // C) Dibujar Entrada Principal
   const ent = STATIC_STRUCTURES.entrance;
+  const entRect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+  entRect.setAttribute("x", ((ent.x - ent.w/2) * SCALE).toString());
+  entRect.setAttribute("y", ((ent.y - ent.h/2) * SCALE).toString());
+  entRect.setAttribute("width", (ent.w * SCALE).toString());
+  entRect.setAttribute("height", (ent.h * SCALE).toString());
+  entRect.setAttribute("fill", "none");
+  entRect.setAttribute("stroke", "var(--svg-wall-stroke)");
+  entRect.setAttribute("stroke-width", "2");
+  entRect.setAttribute("stroke-dasharray", "8 4");
+  staticGroup.appendChild(entRect);
+
+  const entLabel = document.createElementNS("http://www.w3.org/2000/svg", "text");
+  entLabel.setAttribute("x", (ent.x * SCALE).toString());
+  entLabel.setAttribute("y", ((ent.y - ent.h/2 + 2.0) * SCALE).toString());
+  entLabel.setAttribute("class", "svg-label");
+  entLabel.setAttribute("text-anchor", "middle");
+  entLabel.textContent = "ENTRADA PRINCIPAL";
+  staticGroup.appendChild(entLabel);
+
+  // D) Rampa de Acceso
   const ramp = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-  ramp.setAttribute("x", ((ent.x - ent.rampWidth/2) * SCALE).toString());
-  ramp.setAttribute("y", (ent.y * SCALE).toString());
-  ramp.setAttribute("width", (ent.rampWidth * SCALE).toString());
-  ramp.setAttribute("height", (ent.rampLength * SCALE).toString());
+  ramp.setAttribute("x", (ent.rampX * SCALE).toString());
+  ramp.setAttribute("y", (ent.rampY * SCALE).toString());
+  ramp.setAttribute("width", (ent.rampLength * SCALE).toString());
+  ramp.setAttribute("height", (ent.rampWidth * SCALE).toString());
   ramp.setAttribute("class", "svg-ramp-zone");
   staticGroup.appendChild(ramp);
 
-  // Dibuja flechas en la rampa indicando subida
   const rampArrow = document.createElementNS("http://www.w3.org/2000/svg", "path");
-  const ax = ent.x * SCALE;
-  const ay = (ent.y + ent.rampLength * 0.7) * SCALE;
-  rampArrow.setAttribute("d", `M ${ax-10} ${ay} L ${ax} ${ay-15} L ${ax+10} ${ay} M ${ax} ${ay-15} L ${ax} ${ay+10}`);
+  const ax = (ent.rampX + ent.rampLength * 0.4) * SCALE;
+  const ay = (ent.rampY + ent.rampWidth * 0.5) * SCALE;
+  rampArrow.setAttribute("d", `M ${ax+15} ${ay-7} L ${ax} ${ay} L ${ax+15} ${ay+7} M ${ax} ${ay} L ${ax+25} ${ay}`);
   rampArrow.setAttribute("stroke", "#ffffff");
   rampArrow.setAttribute("stroke-width", "1.5");
   rampArrow.setAttribute("fill", "none");
   staticGroup.appendChild(rampArrow);
 
-  // D) Dibujar Baños (WC)
+  // E) Dibujar Baños (WC)
   STATIC_STRUCTURES.bathrooms.forEach(bath => {
     const wc = document.createElementNS("http://www.w3.org/2000/svg", "rect");
     wc.setAttribute("x", (bath.x * SCALE).toString());
@@ -342,22 +338,20 @@ function renderStaticStructures() {
 
     const wcText = document.createElementNS("http://www.w3.org/2000/svg", "text");
     wcText.setAttribute("x", ((bath.x + bath.w/2) * SCALE).toString());
-    wcText.setAttribute("y", ((bath.y + bath.h/2 + 0.2) * SCALE).toString());
+    wcText.setAttribute("y", ((bath.y + bath.h/2 + 0.3) * SCALE).toString());
     wcText.setAttribute("class", "svg-label");
     wcText.setAttribute("text-anchor", "middle");
     wcText.textContent = bath.name;
     staticGroup.appendChild(wcText);
   });
 
-  // E) Dibujar Escenario en Media Luna
+  // F) Dibujar Escenario en Media Luna
   const stg = STATIC_STRUCTURES.stage;
   const stagePath = document.createElementNS("http://www.w3.org/2000/svg", "path");
-  // Ruta de media luna que une los extremos
   const stX = stg.x * SCALE;
   const stY = stg.y * SCALE;
   const rx = stg.radiusX * SCALE;
   const ry = stg.radiusY * SCALE;
-  // Arco desde el extremo izquierdo al derecho, y luego línea recta superior
   stagePath.setAttribute("d", `M ${stX - rx} ${stY} A ${rx} ${ry} 0 0 0 ${stX + rx} ${stY} Z`);
   stagePath.setAttribute("class", "svg-stage-zone");
   staticGroup.appendChild(stagePath);
@@ -370,7 +364,7 @@ function renderStaticStructures() {
   stageText.textContent = "ESCENARIO";
   staticGroup.appendChild(stageText);
 
-  // F) Dibujar Pasarela en T
+  // G) Dibujar Pasarela en T
   const cw = stg.catwalk;
   const catwalkPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
   const cx = cw.x * SCALE;
@@ -379,7 +373,6 @@ function renderStaticStructures() {
   const cwH = cw.h * SCALE;
   const tW = cw.tBarW * SCALE;
   const tH = cw.tBarH * SCALE;
-  // Dibujar contorno de la pasarela en forma de T
   catwalkPath.setAttribute("d", `
     M ${cx - cwW/2} ${cy} 
     L ${cx - cwW/2} ${cy + cwH - tH}
@@ -395,14 +388,13 @@ function renderStaticStructures() {
 
   const catwalkText = document.createElementNS("http://www.w3.org/2000/svg", "text");
   catwalkText.setAttribute("x", cx.toString());
-  catwalkText.setAttribute("y", (cy + cwH/2).toString());
+  catwalkText.setAttribute("y", (cy + cwH - tH/2 + 2).toString());
   catwalkText.setAttribute("class", "svg-label");
   catwalkText.setAttribute("text-anchor", "middle");
-  catwalkText.setAttribute("font-size", "10");
   catwalkText.textContent = "PASARELA";
   staticGroup.appendChild(catwalkText);
 
-  // G) Dibujar Muros del Salón
+  // H) Dibujar Muros del Salón
   STATIC_STRUCTURES.walls.forEach(wall => {
     const wl = document.createElementNS("http://www.w3.org/2000/svg", "line");
     wl.setAttribute("x1", (wall.x1 * SCALE).toString());
@@ -413,15 +405,13 @@ function renderStaticStructures() {
     staticGroup.appendChild(wl);
   });
 
-  // H) Dibujar Puertas e1 a e7
+  // I) Dibujar Puertas e1 a e7
   STATIC_STRUCTURES.doors.forEach(door => {
     const gDoor = document.createElementNS("http://www.w3.org/2000/svg", "g");
     gDoor.setAttribute("transform", `translate(${door.x * SCALE}, ${door.y * SCALE}) rotate(${door.angle})`);
     
-    // Ancho de la puerta
     const dW = door.w * SCALE;
     
-    // Hueco del muro
     const gap = document.createElementNS("http://www.w3.org/2000/svg", "rect");
     gap.setAttribute("x", (-dW/2).toString());
     gap.setAttribute("y", "-4");
@@ -430,43 +420,35 @@ function renderStaticStructures() {
     gap.setAttribute("fill", "var(--svg-bg)");
     gDoor.appendChild(gap);
 
-    if (door.id !== "e7") {
-      // Línea de la puerta abierta
-      const doorLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
-      doorLine.setAttribute("x1", (-dW/2).toString());
-      doorLine.setAttribute("y1", "0");
-      doorLine.setAttribute("x2", (-dW/2).toString());
-      doorLine.setAttribute("y2", (-dW).toString());
-      doorLine.setAttribute("class", "svg-door");
-      gDoor.appendChild(doorLine);
+    const doorLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
+    doorLine.setAttribute("x1", (-dW/2).toString());
+    doorLine.setAttribute("y1", "0");
+    doorLine.setAttribute("x2", (-dW/2).toString());
+    doorLine.setAttribute("y2", (-dW).toString());
+    doorLine.setAttribute("class", "svg-door");
+    gDoor.appendChild(doorLine);
 
-      // Arco de giro
-      const swing = document.createElementNS("http://www.w3.org/2000/svg", "path");
-      swing.setAttribute("d", `M ${-dW/2} ${-dW} A ${dW} ${dW} 0 0 1 ${dW/2} 0`);
-      swing.setAttribute("class", "svg-door");
-      swing.setAttribute("stroke-dasharray", "4 3");
-      gDoor.appendChild(swing);
-    }
+    const swing = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    swing.setAttribute("d", `M ${-dW/2} ${-dW} A ${dW} ${dW} 0 0 1 ${dW/2} 0`);
+    swing.setAttribute("class", "svg-door");
+    swing.setAttribute("stroke-dasharray", "4 3");
+    gDoor.appendChild(swing);
 
-    // Texto de la puerta (e.g. E1)
     const doorLbl = document.createElementNS("http://www.w3.org/2000/svg", "text");
     doorLbl.setAttribute("x", "0");
-    doorLbl.setAttribute("y", (door.id === "e7" ? 15 : -dW - 6).toString());
+    doorLbl.setAttribute("y", (-dW - 6).toString());
     doorLbl.setAttribute("class", "svg-label");
     doorLbl.setAttribute("text-anchor", "middle");
     doorLbl.setAttribute("font-size", "10");
-    // Rotar texto para que quede horizontal
     doorLbl.setAttribute("transform", `rotate(${-door.angle})`);
-    doorLbl.textContent = door.id.toUpperCase();
+    doorLbl.textContent = door.name.toUpperCase();
     gDoor.appendChild(doorLbl);
 
     staticGroup.appendChild(gDoor);
   });
 }
 
-/* --- RENDERIZACIÓN DE MUEBLES DINÁMICOS --- */
-
-// 1. Renderizar Stand de Expositor
+/* --- RENDERIZACIÓN DE MUEBLES --- */
 function renderStand(group, elem) {
   const wPx = elem.w * SCALE;
   const hPx = elem.h * SCALE;
@@ -483,7 +465,6 @@ function renderStand(group, elem) {
   box.setAttribute("rx", "6");
   group.appendChild(box);
 
-  // Letrero del stand
   const title = document.createElementNS("http://www.w3.org/2000/svg", "text");
   title.setAttribute("x", "0");
   title.setAttribute("y", "-4");
@@ -494,7 +475,6 @@ function renderStand(group, elem) {
   title.textContent = elem.name;
   group.appendChild(title);
 
-  // Nombre del expositor
   const exp = document.createElementNS("http://www.w3.org/2000/svg", "text");
   exp.setAttribute("x", "0");
   exp.setAttribute("y", "12");
@@ -506,12 +486,10 @@ function renderStand(group, elem) {
   group.appendChild(exp);
 }
 
-// 2. Renderizar Mesas con sus comensales Tiffany
 function renderTable(group, elem) {
   const wPx = elem.w * SCALE;
   const hPx = elem.h * SCALE;
   
-  // Mesa Física
   if (elem.shape === "circle") {
     const circ = document.createElementNS("http://www.w3.org/2000/svg", "circle");
     circ.setAttribute("cx", "0");
@@ -534,7 +512,6 @@ function renderTable(group, elem) {
     group.appendChild(rct);
   }
 
-  // Identificador de la mesa
   const title = document.createElementNS("http://www.w3.org/2000/svg", "text");
   title.setAttribute("x", "0");
   title.setAttribute("y", "4");
@@ -545,9 +522,8 @@ function renderTable(group, elem) {
   title.textContent = elem.name;
   group.appendChild(title);
 
-  // Dibujar Sillas alrededor
   const numChairs = elem.chairs || 0;
-  const chairsOffset = 6; // px fuera del contorno de la mesa
+  const chairsOffset = 5;
   
   for (let i = 0; i < numChairs; i++) {
     const angle = (i * 2 * Math.PI) / numChairs;
@@ -563,7 +539,7 @@ function renderTable(group, elem) {
     }
     
     const chair = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-    const cSize = 7; // px de la silla en 2D
+    const cSize = 6;
     chair.setAttribute("x", (-cSize/2).toString());
     chair.setAttribute("y", (-cSize/2).toString());
     chair.setAttribute("width", cSize.toString());
@@ -571,19 +547,16 @@ function renderTable(group, elem) {
     chair.setAttribute("rx", "1.5");
     chair.setAttribute("class", "svg-chair");
     
-    // Rotar la silla para que apunte al centro de la mesa
     const rotDeg = (angle * 180) / Math.PI;
     chair.setAttribute("transform", `translate(${chX}, ${chY}) rotate(${-rotDeg})`);
     group.appendChild(chair);
   }
 }
 
-// 3. Renderizar Sala Lounge
 function renderLounge(group, elem) {
   const wPx = elem.w * SCALE;
   const hPx = elem.h * SCALE;
   
-  // Marco de la sala
   const area = document.createElementNS("http://www.w3.org/2000/svg", "rect");
   area.setAttribute("x", (-wPx/2).toString());
   area.setAttribute("y", (-hPx/2).toString());
@@ -596,9 +569,8 @@ function renderLounge(group, elem) {
   area.setAttribute("rx", "4");
   group.appendChild(area);
 
-  // Sillones laterales
   const sofaW = wPx * 0.75;
-  const sofaH = 8;
+  const sofaH = 6;
   const sofa = document.createElementNS("http://www.w3.org/2000/svg", "rect");
   sofa.setAttribute("x", (-sofaW/2).toString());
   sofa.setAttribute("y", (-hPx/2 + 2).toString());
@@ -617,9 +589,8 @@ function renderLounge(group, elem) {
   sofa2.setAttribute("rx", "2");
   group.appendChild(sofa2);
 
-  // Mesa de centro
   const tableW = wPx * 0.4;
-  const tableH = 6;
+  const tableH = 4;
   const table = document.createElementNS("http://www.w3.org/2000/svg", "rect");
   table.setAttribute("x", (-tableW/2).toString());
   table.setAttribute("y", (-tableH/2).toString());
@@ -628,18 +599,8 @@ function renderLounge(group, elem) {
   table.setAttribute("fill", "#ffffff");
   table.setAttribute("rx", "1");
   group.appendChild(table);
-
-  const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
-  text.setAttribute("x", "0");
-  text.setAttribute("y", "14");
-  text.setAttribute("font-size", "7");
-  text.setAttribute("fill", "#ffffff");
-  text.setAttribute("text-anchor", "middle");
-  text.textContent = "LOUNGE";
-  group.appendChild(text);
 }
 
-// 4. Renderizar Letras Gigantes
 function renderGiantLetters(group, elem) {
   const wPx = elem.w * SCALE;
   const hPx = elem.h * SCALE;
@@ -668,7 +629,6 @@ function renderGiantLetters(group, elem) {
   group.appendChild(label);
 }
 
-// 5. Renderizar Espejo
 function renderMirror(group, elem) {
   const wPx = elem.w * SCALE;
   const hPx = elem.h * SCALE;
@@ -683,19 +643,8 @@ function renderMirror(group, elem) {
   frame.setAttribute("stroke", elem.color || "#d4af37");
   frame.setAttribute("stroke-width", "2");
   group.appendChild(frame);
-
-  const reflection = document.createElementNS("http://www.w3.org/2000/svg", "line");
-  reflection.setAttribute("x1", (-wPx/3).toString());
-  reflection.setAttribute("y1", (hPx/3).toString());
-  reflection.setAttribute("x2", (wPx/3).toString());
-  reflection.setAttribute("y2", (-hPx/3).toString());
-  reflection.setAttribute("stroke", "#ffffff");
-  reflection.setAttribute("stroke-width", "1.5");
-  reflection.setAttribute("opacity", "0.6");
-  group.appendChild(reflection);
 }
 
-// 6. Renderizar Cabina de Fotos
 function renderPhotobooth(group, elem) {
   const wPx = elem.w * SCALE;
   const hPx = elem.h * SCALE;
@@ -711,27 +660,17 @@ function renderPhotobooth(group, elem) {
   box.setAttribute("rx", "3");
   group.appendChild(box);
 
-  const camIcon = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-  camIcon.setAttribute("cx", "0");
-  camIcon.setAttribute("cy", "-2");
-  camIcon.setAttribute("r", (wPx/5).toString());
-  camIcon.setAttribute("fill", "none");
-  camIcon.setAttribute("stroke", "#ffffff");
-  camIcon.setAttribute("stroke-width", "1.5");
-  group.appendChild(camIcon);
-
   const label = document.createElementNS("http://www.w3.org/2000/svg", "text");
   label.setAttribute("x", "0");
-  label.setAttribute("y", (hPx/3).toString());
+  label.setAttribute("y", "3");
   label.setAttribute("font-size", "8");
   label.setAttribute("fill", "#ffffff");
   label.setAttribute("font-weight", "700");
   label.setAttribute("text-anchor", "middle");
-  label.textContent = "CABINA";
+  label.textContent = "FOTO";
   group.appendChild(label);
 }
 
-// 7. Renderizar DJ / Cabina de Música
 function renderDJ(group, elem) {
   const wPx = elem.w * SCALE;
   const hPx = elem.h * SCALE;
@@ -746,35 +685,8 @@ function renderDJ(group, elem) {
   consoleRect.setAttribute("stroke-width", "1.5");
   consoleRect.setAttribute("rx", "2");
   group.appendChild(consoleRect);
-
-  // Discos giratorios
-  const diskL = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-  diskL.setAttribute("cx", (-wPx/4).toString());
-  diskL.setAttribute("cy", "0");
-  diskL.setAttribute("r", (hPx/3.5).toString());
-  diskL.setAttribute("fill", "#000000");
-  diskL.setAttribute("stroke", "#818cf8");
-  group.appendChild(diskL);
-
-  const diskR = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-  diskR.setAttribute("cx", (wPx/4).toString());
-  diskR.setAttribute("cy", "0");
-  diskR.setAttribute("r", (hPx/3.5).toString());
-  diskR.setAttribute("fill", "#000000");
-  diskR.setAttribute("stroke", "#818cf8");
-  group.appendChild(diskR);
-
-  const label = document.createElementNS("http://www.w3.org/2000/svg", "text");
-  label.setAttribute("x", "0");
-  label.setAttribute("y", "3");
-  label.setAttribute("font-size", "7");
-  label.setAttribute("fill", "#ffffff");
-  label.setAttribute("text-anchor", "middle");
-  label.textContent = "DJ";
-  group.appendChild(label);
 }
 
-// 8. Renderizar Arbusto
 function renderShrub(group, elem) {
   const wPx = elem.w * SCALE;
   const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
@@ -785,27 +697,12 @@ function renderShrub(group, elem) {
   circle.setAttribute("stroke", "#14532d");
   circle.setAttribute("stroke-width", "1.5");
   group.appendChild(circle);
-
-  // Toques orgánicos
-  for (let i = 0; i < 4; i++) {
-    const leaf = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-    const angle = (i * Math.PI) / 2;
-    leaf.setAttribute("cx", (Math.sin(angle) * wPx/4).toString());
-    leaf.setAttribute("cy", (Math.cos(angle) * wPx/4).toString());
-    leaf.setAttribute("r", (wPx/6).toString());
-    leaf.setAttribute("fill", "#22c55e");
-    leaf.setAttribute("opacity", "0.7");
-    group.appendChild(leaf);
-  }
 }
 
-// 9. Renderizar Mesa de Periqueras o Mesa con Sombrilla
 function renderHighTable(group, elem) {
   const wPx = elem.w * SCALE;
-  const hPx = elem.h * SCALE;
 
   if (elem.type === "umbrella") {
-    // Sombrilla
     const umbrella = document.createElementNS("http://www.w3.org/2000/svg", "circle");
     umbrella.setAttribute("cx", "0");
     umbrella.setAttribute("cy", "0");
@@ -815,23 +712,8 @@ function renderHighTable(group, elem) {
     umbrella.setAttribute("stroke", "#0369a1");
     umbrella.setAttribute("stroke-width", "1");
     group.appendChild(umbrella);
-
-    // Gajos de la sombrilla
-    for (let i = 0; i < 8; i++) {
-      const angle = (i * Math.PI) / 4;
-      const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
-      line.setAttribute("x1", "0");
-      line.setAttribute("y1", "0");
-      line.setAttribute("x2", (Math.sin(angle) * wPx/2).toString());
-      line.setAttribute("y2", (Math.cos(angle) * wPx/2).toString());
-      line.setAttribute("stroke", "#ffffff");
-      line.setAttribute("stroke-width", "0.7");
-      line.setAttribute("opacity", "0.5");
-      group.appendChild(line);
-    }
   }
 
-  // Mesa centro
   const centerTable = document.createElementNS("http://www.w3.org/2000/svg", "circle");
   centerTable.setAttribute("cx", "0");
   centerTable.setAttribute("cy", "0");
@@ -840,7 +722,6 @@ function renderHighTable(group, elem) {
   centerTable.setAttribute("stroke", "#ffffff");
   group.appendChild(centerTable);
 
-  // Bancos (sillas altas)
   const numStools = elem.chairs || 4;
   for (let i = 0; i < numStools; i++) {
     const angle = (i * 2 * Math.PI) / numStools;
@@ -850,14 +731,13 @@ function renderHighTable(group, elem) {
     const stool = document.createElementNS("http://www.w3.org/2000/svg", "circle");
     stool.setAttribute("cx", stX.toString());
     stool.setAttribute("cy", stY.toString());
-    stool.setAttribute("r", "3.5");
+    stool.setAttribute("r", "3.0");
     stool.setAttribute("fill", "#475569");
     stool.setAttribute("stroke", "#1e293b");
     group.appendChild(stool);
   }
 }
 
-// 10. Renderizador Genérico
 function renderGeneric(group, elem) {
   const wPx = elem.w * SCALE;
   const hPx = elem.h * SCALE;
@@ -872,22 +752,12 @@ function renderGeneric(group, elem) {
   box.setAttribute("stroke-width", "1");
   box.setAttribute("rx", "3");
   group.appendChild(box);
-
-  const lbl = document.createElementNS("http://www.w3.org/2000/svg", "text");
-  lbl.setAttribute("x", "0");
-  lbl.setAttribute("y", "4");
-  lbl.setAttribute("font-size", "8");
-  lbl.setAttribute("fill", "#ffffff");
-  lbl.setAttribute("text-anchor", "middle");
-  lbl.textContent = elem.name;
-  group.appendChild(lbl);
 }
 
-/* --- EVENTOS DE ARRASTRE DE ELEMENTOS DRAGGABLE --- */
+/* --- EVENTOS DE ARRASTRE DE ELEMENTOS --- */
 function setupDragEvents(group, elem) {
   const startDrag = (evt) => {
     evt.stopPropagation();
-    
     let isTouch = evt.type.startsWith("touch");
     let pointer = isTouch ? evt.touches[0] : evt;
     
@@ -898,11 +768,7 @@ function setupDragEvents(group, elem) {
     isDragging = true;
     dragTarget = elem;
     
-    const fakeEvent = {
-      clientX: pointer.clientX,
-      clientY: pointer.clientY
-    };
-    
+    const fakeEvent = { clientX: pointer.clientX, clientY: pointer.clientY };
     const mouseCoords = getMouseCoords(fakeEvent);
     dragOffset.x = mouseCoords.mX - elem.x;
     dragOffset.y = mouseCoords.mY - elem.y;
@@ -938,9 +804,7 @@ function setupDragEvents(group, elem) {
       selectedElementId = elem.id;
       selectElement2D(elem.id);
       
-      if (onSelectedCallback) {
-        onSelectedCallback(elem, !hasMoved);
-      }
+      if (onSelectedCallback) onSelectedCallback(elem, !hasMoved);
       render();
     };
     
@@ -970,11 +834,9 @@ function updateDragPosition(clientX, clientY, rect) {
   const elementRadiusW = dragTarget.w / 2;
   const elementRadiusH = dragTarget.h / 2;
   
-  // Limitar dentro del terreno de 60m x 80m
   newX = Math.max(elementRadiusW, Math.min(CANVAS_WIDTH - elementRadiusW, newX));
   newY = Math.max(elementRadiusH, Math.min(CANVAS_HEIGHT - elementRadiusH, newY));
   
-  // Snap a rejilla de 10cm
   if (useGrid) {
     newX = Math.round(newX / GRID_SNAP_VAL) * GRID_SNAP_VAL;
     newY = Math.round(newY / GRID_SNAP_VAL) * GRID_SNAP_VAL;
@@ -986,13 +848,10 @@ function updateDragPosition(clientX, clientY, rect) {
   dragTarget.x = newX;
   dragTarget.y = newY;
   
-  // Actualizar la traslación SVG al instante
   const g = activeSvg.querySelector(`.draggable[data-id="${dragTarget.id}"]`);
   if (g) {
     g.setAttribute("transform", `translate(${newX * SCALE}, ${newY * SCALE}) rotate(${dragTarget.rotation || 0})`);
   }
   
-  if (onMovedCallback) {
-    onMovedCallback(dragTarget);
-  }
+  if (onMovedCallback) onMovedCallback(dragTarget);
 }
