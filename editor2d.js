@@ -287,8 +287,10 @@ function renderStaticStructures() {
   fountainInner.setAttribute("fill", "#60a5fa");
   staticGroup.appendChild(fountainInner);
 
-  // C) Dibujar Entrada Principal
+  // C) Dibujar Entrada Principal y Área de Rampa/Patio
   const ent = STATIC_STRUCTURES.entrance;
+  
+  // Rectángulo delimitador punteado para el área completa de entrada (24m x 16m)
   const entRect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
   entRect.setAttribute("x", ((ent.x - ent.w/2) * SCALE).toString());
   entRect.setAttribute("y", ((ent.y - ent.h/2) * SCALE).toString());
@@ -296,19 +298,45 @@ function renderStaticStructures() {
   entRect.setAttribute("height", (ent.h * SCALE).toString());
   entRect.setAttribute("fill", "none");
   entRect.setAttribute("stroke", "var(--svg-wall-stroke)");
-  entRect.setAttribute("stroke-width", "2");
+  entRect.setAttribute("stroke-width", "1.5");
   entRect.setAttribute("stroke-dasharray", "8 4");
   staticGroup.appendChild(entRect);
 
+  // Patio/Plaza de acceso (20m x 12m, de y=58 a y=70, x=46 a x=66)
+  const courtyardRect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+  courtyardRect.setAttribute("x", (46.0 * SCALE).toString());
+  courtyardRect.setAttribute("y", (58.0 * SCALE).toString());
+  courtyardRect.setAttribute("width", (20.0 * SCALE).toString());
+  courtyardRect.setAttribute("height", (12.0 * SCALE).toString());
+  courtyardRect.setAttribute("fill", "none");
+  courtyardRect.setAttribute("stroke", "var(--svg-wall-stroke)");
+  courtyardRect.setAttribute("stroke-width", "0.8");
+  courtyardRect.setAttribute("stroke-dasharray", "4 4");
+  staticGroup.appendChild(courtyardRect);
+
+  // Pasillo de la Entrada Principal (4m x 16m, pegado al delineamiento negro en x=66 a x=70)
+  const walkwayRect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+  walkwayRect.setAttribute("x", (66.0 * SCALE).toString());
+  walkwayRect.setAttribute("y", (54.0 * SCALE).toString());
+  walkwayRect.setAttribute("width", (4.0 * SCALE).toString());
+  walkwayRect.setAttribute("height", (16.0 * SCALE).toString());
+  walkwayRect.setAttribute("fill", "var(--svg-ramp)");
+  walkwayRect.setAttribute("fill-opacity", "0.3");
+  walkwayRect.setAttribute("stroke", "var(--svg-wall-stroke)");
+  walkwayRect.setAttribute("stroke-width", "1");
+  staticGroup.appendChild(walkwayRect);
+
+  // Etiqueta vertical "ENTRADA PRINCIPAL"
   const entLabel = document.createElementNS("http://www.w3.org/2000/svg", "text");
-  entLabel.setAttribute("x", (ent.x * SCALE).toString());
-  entLabel.setAttribute("y", ((ent.y - ent.h/2 + 2.0) * SCALE).toString());
+  entLabel.setAttribute("x", (68.0 * SCALE).toString());
+  entLabel.setAttribute("y", (62.0 * SCALE).toString());
   entLabel.setAttribute("class", "svg-label");
   entLabel.setAttribute("text-anchor", "middle");
+  entLabel.setAttribute("transform", `rotate(90, ${68.0 * SCALE}, ${62.0 * SCALE})`);
   entLabel.textContent = "ENTRADA PRINCIPAL";
   staticGroup.appendChild(entLabel);
 
-  // D) Rampa de Acceso
+  // D) Rampa de Acceso (se conecta a E2 y se extiende 20m a la derecha)
   const ramp = document.createElementNS("http://www.w3.org/2000/svg", "rect");
   ramp.setAttribute("x", (ent.rampX * SCALE).toString());
   ramp.setAttribute("y", (ent.rampY * SCALE).toString());

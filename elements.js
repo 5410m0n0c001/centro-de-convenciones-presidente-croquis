@@ -59,14 +59,14 @@ export const STATIC_STRUCTURES = {
 
   // Entrada Principal y rampa en el cuadrante inferior derecho
   entrance: {
-    x: 57.0, // Centro del cuadrado
-    y: 61.0,
-    w: 18.0, // Ancho del cuadrado
-    h: 18.0, // Largo del cuadrado
-    rampX: 48.0, // Inicio de la rampa en la pared del salón
-    rampY: 54.0, 
-    rampWidth: 4.0, // Ancho de la rampa (cabe por la puerta E2)
-    rampLength: 10.0, // Se extiende hacia la derecha
+    x: 58.0,      // Centro del área total de entrada (de x=46 a x=70 -> (46+70)/2 = 58)
+    y: 62.0,      // Centro vertical (de y=54 a y=70 -> (54+70)/2 = 62)
+    w: 24.0,      // Ancho total del área (desde salón x=46 hasta límite negro x=70)
+    h: 16.0,      // Alto total del área (desde y=54 hasta y=70)
+    rampX: 46.0,  // Inicio de la rampa exactamente en la pared del salón (x=46)
+    rampY: 54.0,  // Inicio de la rampa en Y (alineado con la puerta E2 de y=54 a y=58)
+    rampWidth: 4.0, // Ancho de la rampa
+    rampLength: 20.0, // Se extiende hasta conectar con el pasillo de la entrada (x=46 a x=66)
     rampHeightZ: 0.4
   },
 
@@ -88,7 +88,7 @@ export const STATIC_STRUCTURES = {
   // Puertas de acceso (e1 a e7) exactamente como en el dibujo
   doors: [
     { id: "e1", name: "E1", x: 46.0, y: 22.0, w: 2.0, angle: 270, side: "right" },
-    { id: "e2", name: "E2 (Rampa)", x: 46.0, y: 54.0, w: 4.0, angle: 270, side: "right" },
+    { id: "e2", name: "E2 (Rampa)", x: 46.0, y: 56.0, w: 4.0, angle: 270, side: "right" },
     { id: "e3", name: "E3", x: 38.0, y: 70.0, w: 2.0, angle: 180, side: "bottom" },
     { id: "e4", name: "E4", x: 28.0, y: 70.0, w: 2.0, angle: 180, side: "bottom" },
     { id: "e5", name: "E5", x: 18.0, y: 70.0, w: 2.0, angle: 180, side: "bottom" },

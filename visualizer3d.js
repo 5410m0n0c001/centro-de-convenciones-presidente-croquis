@@ -395,13 +395,13 @@ function createStatic3DStructures() {
   catwalkG.add(bar);
   scene.add(catwalkG);
 
-  // H) Rampa de Acceso en Entrada Principal (Wedge)
+  // H) Rampa de Acceso en Entrada Principal (Wedge) y Pavimento Exterior
   const ent = STATIC_STRUCTURES.entrance;
   
-  // Perfil triangular: alto=0.4m en la pared del salón (x=48) y desciende a 0.0m a los 10m (x=58)
+  // Perfil triangular: alto=0.4m en la pared del salón (x=46) y desciende a 0.0m a los 20m (x=66)
   const rampShape = new THREE.Shape();
   rampShape.moveTo(0, ent.rampHeightZ); // Alto 0.4 en x=0 (pared)
-  rampShape.lineTo(ent.rampLength, 0.0); // Cae a 0 en x=10
+  rampShape.lineTo(ent.rampLength, 0.0); // Cae a 0 en x=20
   rampShape.lineTo(ent.rampLength, 0.0);
   rampShape.lineTo(0, 0.0);
   rampShape.closePath();
@@ -414,10 +414,34 @@ function createStatic3DStructures() {
   });
   const ramp = new THREE.Mesh(rampGeom, rampMat);
   
-  // Posicionar alineado con la puerta E2 (z=54 a 58)
+  // Posicionar alineado con la puerta E2 (z=54 a 58) y pegado al muro del salón (x=46)
   ramp.position.set(ent.rampX, 0.05, ent.rampY);
   ramp.receiveShadow = true;
   scene.add(ramp);
+
+  // Piso pavimentado de la Entrada Principal (4m x 16m en x=66 a 70, z=54 a 70)
+  if (!isBw) {
+    const walkwayGeom = new THREE.BoxGeometry(4.0, 0.02, 16.0);
+    const walkwayMat = new THREE.MeshStandardMaterial({
+      color: isCadD ? 0x111111 : (isCadL ? 0xe2e8f0 : 0x334155),
+      roughness: 0.8
+    });
+    const walkway = new THREE.Mesh(walkwayGeom, walkwayMat);
+    walkway.position.set(68.0, 0.01, 62.0); // Centro de la entrada
+    walkway.receiveShadow = true;
+    scene.add(walkway);
+
+    // Patio de Entrada/Plaza (20m x 12m en x=46 a 66, z=58 a 70)
+    const courtyardGeom = new THREE.BoxGeometry(20.0, 0.01, 12.0);
+    const courtyardMat = new THREE.MeshStandardMaterial({
+      color: isCadD ? 0x0a0a0a : (isCadL ? 0xf1f5f9 : 0x1e293b),
+      roughness: 0.85
+    });
+    const courtyard = new THREE.Mesh(courtyardGeom, courtyardMat);
+    courtyard.position.set(56.0, 0.005, 64.0); // Centro del patio
+    courtyard.receiveShadow = true;
+    scene.add(courtyard);
+  }
 }
 
 /* --- CREAR ARO DE SELECCIÓN --- */
