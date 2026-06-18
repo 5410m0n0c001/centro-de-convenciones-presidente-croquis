@@ -1,0 +1,9 @@
+# Gemini config and local logs
+.gemini/
+
+# Operating system files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+.DS_Store
+*.lnk
