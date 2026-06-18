@@ -40,7 +40,7 @@ export function init3D(containerElement, initialElements, themeName = 'premium')
   scene = new THREE.Scene();
   scene.background = new THREE.Color(themeName === 'cad-light' ? 0xf1f5f9 : 0x090d16);
   if (themeName !== 'cad-light' && themeName !== 'minimalist') {
-    scene.fog = new THREE.FogExp2(0x090d16, 0.01);
+    scene.fog = new THREE.FogExp2(0x090d16, 0.0025); // Disminuido de 0.01 a 0.0025 para evitar que oscurezca la vista
   }
 
   // 2. Cámara
@@ -134,19 +134,19 @@ export function resetCamera3D() {
 
 function setupLighting() {
   if (currentTheme === 'minimalist') {
-    const amb = new THREE.AmbientLight(0xffffff, 1.0);
+    const amb = new THREE.AmbientLight(0xffffff, 1.2);
     scene.add(amb);
     return;
   }
   
   const isCadLight = currentTheme === 'cad-light';
   
-  // Luz Ambiental
-  const ambientLight = new THREE.AmbientLight(isCadLight ? 0xffffff : 0xe0e7ff, isCadLight ? 0.65 : 0.38);
+  // Luz Ambiental (Intensidad aumentada para evitar la oscuridad extrema)
+  const ambientLight = new THREE.AmbientLight(isCadLight ? 0xffffff : 0xe0e7ff, isCadLight ? 0.75 : 0.6);
   scene.add(ambientLight);
   
-  // Luz del Atardecer Dorado (Direccional Principal)
-  const sunLight = new THREE.DirectionalLight(0xffedd5, isCadLight ? 1.0 : 0.85);
+  // Luz del Atardecer Dorado (Direccional Principal, más intensa)
+  const sunLight = new THREE.DirectionalLight(0xffedd5, isCadLight ? 1.2 : 1.35);
   sunLight.position.set(50, 45, 100);
   sunLight.castShadow = true;
   sunLight.shadow.mapSize.width = 2048;
@@ -161,6 +161,11 @@ function setupLighting() {
   sunLight.shadow.camera.bottom = -d;
   sunLight.shadow.bias = -0.0001;
   scene.add(sunLight);
+
+  // Luz de Relleno (Secundaria, ilumina desde el lado contrario para disipar sombras)
+  const fillLight = new THREE.DirectionalLight(0x93c5fd, isCadLight ? 0.35 : 0.5);
+  fillLight.position.set(-50, 30, -50);
+  scene.add(fillLight);
   
   if (!isCadLight) {
     // Foco de Acento sobre Escenario y Pasarela (Violeta Cálido)
@@ -270,53 +275,100 @@ function createStatic3DStructures() {
     scene.add(ftGroup);
   }
 
-  // D) Muros del Salón (Doble altura: 6.0m)
-  // Muro Superior (z=12, x:10-46, ancho=36, alto=6, espesor=0.3)
+  // D) Muros del Salón (Doble altura: 6.0m, divididos por las puertas para dejar los huecos)
+  // Muro Superior (z=12, x:10-46, ancho=36, alto=6, espesor=0.3) - Continuo
   const wallTop = new THREE.Mesh(new THREE.BoxGeometry(36, 6, 0.3), wallMat);
   wallTop.position.set(28, 3.0, 12.0);
   wallTop.castShadow = true;
   wallTop.receiveShadow = true;
   scene.add(wallTop);
 
-  // Muro Izquierdo (x=10, z:12-70, largo=58, alto=6, espesor=0.3)
-  const wallLeft = new THREE.Mesh(new THREE.BoxGeometry(0.3, 6, 58), wallMat);
-  wallLeft.position.set(10.0, 3.0, 41.0);
-  wallLeft.castShadow = true;
-  wallLeft.receiveShadow = true;
-  scene.add(wallLeft);
+  // Muro Izquierdo (x=10, z:12-70, largo=58) - Con huecos para E7 (z=22, w=2) y E6 (z=54, w=2)
+  // Segmento 1: z=12 a z=21 (largo=9)
+  const wallLeft1 = new THREE.Mesh(new THREE.BoxGeometry(0.3, 6, 9.0), wallMat);
+  wallLeft1.position.set(10.0, 3.0, 16.5);
+  wallLeft1.castShadow = true;
+  wallLeft1.receiveShadow = true;
+  scene.add(wallLeft1);
 
-  // Muro Derecho dividido por puerta E2 (E2 está de z=54 a 58)
-  // Superior derecho (z: 12 a 54, largo=42)
-  const wallRightUpper = new THREE.Mesh(new THREE.BoxGeometry(0.3, 6, 42), wallMat);
-  wallRightUpper.position.set(46.0, 3.0, 33.0);
-  wallRightUpper.castShadow = true;
-  wallRightUpper.receiveShadow = true;
-  scene.add(wallRightUpper);
+  // Segmento 2: z=23 a z=53 (largo=30)
+  const wallLeft2 = new THREE.Mesh(new THREE.BoxGeometry(0.3, 6, 30.0), wallMat);
+  wallLeft2.position.set(10.0, 3.0, 38.0);
+  wallLeft2.castShadow = true;
+  wallLeft2.receiveShadow = true;
+  scene.add(wallLeft2);
 
-  // Inferior derecho (z: 58 a 70, largo=12)
-  const wallRightLower = new THREE.Mesh(new THREE.BoxGeometry(0.3, 6, 12), wallMat);
-  wallRightLower.position.set(46.0, 3.0, 64.0);
-  wallRightLower.castShadow = true;
-  wallRightLower.receiveShadow = true;
-  scene.add(wallRightLower);
+  // Segmento 3: z=55 a z=70 (largo=15)
+  const wallLeft3 = new THREE.Mesh(new THREE.BoxGeometry(0.3, 6, 15.0), wallMat);
+  wallLeft3.position.set(10.0, 3.0, 62.5);
+  wallLeft3.castShadow = true;
+  wallLeft3.receiveShadow = true;
+  scene.add(wallLeft3);
 
-  // Muro Inferior (z=70, x:10-46, ancho=36)
-  const wallBottom = new THREE.Mesh(new THREE.BoxGeometry(36, 6, 0.3), wallMat);
-  wallBottom.position.set(28, 3.0, 70.0);
-  wallBottom.castShadow = true;
-  wallBottom.receiveShadow = true;
-  scene.add(wallBottom);
+  // Muro Derecho (x=46, z:12-70, largo=58) - Con huecos para E1 (z=22, w=2) y E2 (z=56, w=4)
+  // Segmento 1: z=12 a z=21 (largo=9)
+  const wallRight1 = new THREE.Mesh(new THREE.BoxGeometry(0.3, 6, 9.0), wallMat);
+  wallRight1.position.set(46.0, 3.0, 16.5);
+  wallRight1.castShadow = true;
+  wallRight1.receiveShadow = true;
+  scene.add(wallRight1);
+
+  // Segmento 2: z=23 a z=54 (largo=31)
+  const wallRight2 = new THREE.Mesh(new THREE.BoxGeometry(0.3, 6, 31.0), wallMat);
+  wallRight2.position.set(46.0, 3.0, 38.5);
+  wallRight2.castShadow = true;
+  wallRight2.receiveShadow = true;
+  scene.add(wallRight2);
+
+  // Segmento 3: z=58 a z=70 (largo=12)
+  const wallRight3 = new THREE.Mesh(new THREE.BoxGeometry(0.3, 6, 12.0), wallMat);
+  wallRight3.position.set(46.0, 3.0, 64.0);
+  wallRight3.castShadow = true;
+  wallRight3.receiveShadow = true;
+  scene.add(wallRight3);
+
+  // Muro Inferior (z=70, x:10-46, ancho=36) - Con huecos para E5 (x=18, w=2), E4 (x=28, w=2) y E3 (x=38, w=2)
+  // Segmento 1: x=10 a x=17 (ancho=7)
+  const wallBottom1 = new THREE.Mesh(new THREE.BoxGeometry(7.0, 6, 0.3), wallMat);
+  wallBottom1.position.set(13.5, 3.0, 70.0);
+  wallBottom1.castShadow = true;
+  wallBottom1.receiveShadow = true;
+  scene.add(wallBottom1);
+
+  // Segmento 2: x=19 a x=27 (ancho=8)
+  const wallBottom2 = new THREE.Mesh(new THREE.BoxGeometry(8.0, 6, 0.3), wallMat);
+  wallBottom2.position.set(23.0, 3.0, 70.0);
+  wallBottom2.castShadow = true;
+  wallBottom2.receiveShadow = true;
+  scene.add(wallBottom2);
+
+  // Segmento 3: x=29 a x=37 (ancho=8)
+  const wallBottom3 = new THREE.Mesh(new THREE.BoxGeometry(8.0, 6, 0.3), wallMat);
+  wallBottom3.position.set(33.0, 3.0, 70.0);
+  wallBottom3.castShadow = true;
+  wallBottom3.receiveShadow = true;
+  scene.add(wallBottom3);
+
+  // Segmento 4: x=39 a x=46 (ancho=7)
+  const wallBottom4 = new THREE.Mesh(new THREE.BoxGeometry(7.0, 6, 0.3), wallMat);
+  wallBottom4.position.set(42.5, 3.0, 70.0);
+  wallBottom4.castShadow = true;
+  wallBottom4.receiveShadow = true;
+  scene.add(wallBottom4);
 
   // Columnas de carga perimetrales
   const colGeom = new THREE.BoxGeometry(0.5, 6, 0.5);
   for (let z = 16; z < 68; z += 6) {
-    const colL = new THREE.Mesh(colGeom, wallMat);
-    colL.position.set(10.35, 3.0, z);
-    colL.castShadow = true;
-    scene.add(colL);
+    // Solo dibujar si no coinciden con las puertas de la izquierda (E7=22, E6=54)
+    if (Math.abs(z - 22) > 2 && Math.abs(z - 54) > 2) {
+      const colL = new THREE.Mesh(colGeom, wallMat);
+      colL.position.set(10.35, 3.0, z);
+      colL.castShadow = true;
+      scene.add(colL);
+    }
 
-    // No obstruir puerta E2
-    if (z < 52 || z > 59) {
+    // Solo dibujar si no coinciden con las puertas de la derecha (E1=22, E2=56)
+    if (Math.abs(z - 22) > 2 && (z < 52 || z > 59)) {
       const colR = new THREE.Mesh(colGeom, wallMat);
       colR.position.set(45.65, 3.0, z);
       colR.castShadow = true;
@@ -324,7 +376,7 @@ function createStatic3DStructures() {
     }
   }
 
-  // E) Baños WC exteriores (alto=3m)
+  // E) Baños WC exteriores (alto=3m) con letrero WC
   STATIC_STRUCTURES.bathrooms.forEach(bath => {
     const wcG = new THREE.Group();
     wcG.position.set(bath.x + bath.w/2, 0, bath.y + bath.h/2);
@@ -339,7 +391,32 @@ function createStatic3DStructures() {
     const box = new THREE.Mesh(boxGeom, wcWallMat);
     box.position.y = wH / 2;
     box.castShadow = true;
+    box.receiveShadow = true;
     wcG.add(box);
+
+    // Letrero "WC" frontal
+    if (!isBw) {
+      const canvas = document.createElement("canvas");
+      canvas.width = 128;
+      canvas.height = 64;
+      const ctx = canvas.getContext("2d");
+      ctx.fillStyle = "#10b981";
+      ctx.fillRect(0, 0, 128, 64);
+      ctx.strokeStyle = "#ffffff";
+      ctx.lineWidth = 4;
+      ctx.strokeRect(2, 2, 124, 60);
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "bold 32px sans-serif";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText("WC", 64, 32);
+
+      const texture = new THREE.CanvasTexture(canvas);
+      const signMat = new THREE.MeshBasicMaterial({ map: texture, side: THREE.DoubleSide });
+      const signPlane = new THREE.Mesh(new THREE.PlaneGeometry(1.2, 0.6), signMat);
+      signPlane.position.set(0, 2.0, bath.h / 2 + 0.01);
+      wcG.add(signPlane);
+    }
     scene.add(wcG);
   });
 
@@ -354,7 +431,13 @@ function createStatic3DStructures() {
     roughness: 0.5
   });
   const stageMesh = new THREE.Mesh(stageMeshGeom, stageMeshMat);
-  stageMesh.rotation.y = Math.PI;
+  
+  // Escalar el eje Z por (radiusY / radiusX) para dar forma de media luna elíptica perfecta
+  stageMesh.scale.set(1.0, 1.0, stg.radiusY / stg.radiusX);
+  
+  // Sin rotación Y para que apunte hacia el salón (hacia el sur, Z positivo)
+  stageMesh.rotation.y = 0;
+  
   stageMesh.position.y = stg.heightZ / 2;
   stageMesh.receiveShadow = true;
   stageMesh.castShadow = true;
@@ -364,7 +447,8 @@ function createStatic3DStructures() {
     const ledGeom = new THREE.CylinderGeometry(stg.radiusX + 0.02, stg.radiusX + 0.02, 0.06, 32, 1, true, 0, Math.PI);
     const ledMat = new THREE.MeshBasicMaterial({ color: 0xc084fc, side: THREE.DoubleSide });
     const led = new THREE.Mesh(ledGeom, ledMat);
-    led.rotation.y = Math.PI;
+    led.scale.set(1.0, 1.0, stg.radiusY / stg.radiusX);
+    led.rotation.y = 0;
     led.position.y = 0.05;
     stageG.add(led);
   }
@@ -378,7 +462,7 @@ function createStatic3DStructures() {
     roughness: 0.5
   });
 
-  // Tallo central (Z: 16m a 26m)
+  // Tallo central
   const stem = new THREE.Mesh(new THREE.BoxGeometry(cw.w, cw.heightZ, cw.h - cw.tBarH), catwalkMat);
   const stemZ = cw.y + (cw.h - cw.tBarH)/2;
   stem.position.set(cw.x, cw.heightZ/2 + 0.05, stemZ);
@@ -386,7 +470,7 @@ function createStatic3DStructures() {
   stem.castShadow = true;
   catwalkG.add(stem);
 
-  // Barra de la T (Z: 26m a 30m, ancho 14m)
+  // Barra de la T
   const bar = new THREE.Mesh(new THREE.BoxGeometry(cw.tBarW, cw.heightZ, cw.tBarH), catwalkMat);
   const barZ = cw.y + cw.h - cw.tBarH/2;
   bar.position.set(cw.x, cw.heightZ/2 + 0.05, barZ);
@@ -398,10 +482,9 @@ function createStatic3DStructures() {
   // H) Rampa de Acceso en Entrada Principal (Wedge) y Pavimento Exterior
   const ent = STATIC_STRUCTURES.entrance;
   
-  // Perfil triangular: alto=0.4m en la pared del salón (x=46) y desciende a 0.0m a los 20m (x=66)
   const rampShape = new THREE.Shape();
-  rampShape.moveTo(0, ent.rampHeightZ); // Alto 0.4 en x=0 (pared)
-  rampShape.lineTo(ent.rampLength, 0.0); // Cae a 0 en x=20
+  rampShape.moveTo(0, ent.rampHeightZ); // Alto 0.4 en la pared (x=46)
+  rampShape.lineTo(ent.rampLength, 0.0); // Desciende a 0.0 a los 20m (x=66)
   rampShape.lineTo(ent.rampLength, 0.0);
   rampShape.lineTo(0, 0.0);
   rampShape.closePath();
@@ -413,13 +496,11 @@ function createStatic3DStructures() {
     roughness: 0.7
   });
   const ramp = new THREE.Mesh(rampGeom, rampMat);
-  
-  // Posicionar alineado con la puerta E2 (z=54 a 58) y pegado al muro del salón (x=46)
   ramp.position.set(ent.rampX, 0.05, ent.rampY);
   ramp.receiveShadow = true;
   scene.add(ramp);
 
-  // Piso pavimentado de la Entrada Principal (4m x 16m en x=66 a 70, z=54 a 70)
+  // Piso pavimentado de la Entrada Principal
   if (!isBw) {
     const walkwayGeom = new THREE.BoxGeometry(4.0, 0.02, 16.0);
     const walkwayMat = new THREE.MeshStandardMaterial({
@@ -427,21 +508,78 @@ function createStatic3DStructures() {
       roughness: 0.8
     });
     const walkway = new THREE.Mesh(walkwayGeom, walkwayMat);
-    walkway.position.set(68.0, 0.01, 62.0); // Centro de la entrada
+    walkway.position.set(68.0, 0.01, 62.0);
     walkway.receiveShadow = true;
     scene.add(walkway);
 
-    // Patio de Entrada/Plaza (20m x 12m en x=46 a 66, z=58 a 70)
+    // Patio de Entrada/Plaza
     const courtyardGeom = new THREE.BoxGeometry(20.0, 0.01, 12.0);
     const courtyardMat = new THREE.MeshStandardMaterial({
       color: isCadD ? 0x0a0a0a : (isCadL ? 0xf1f5f9 : 0x1e293b),
       roughness: 0.85
     });
     const courtyard = new THREE.Mesh(courtyardGeom, courtyardMat);
-    courtyard.position.set(56.0, 0.005, 64.0); // Centro del patio
+    courtyard.position.set(56.0, 0.005, 64.0);
     courtyard.receiveShadow = true;
     scene.add(courtyard);
   }
+
+  // I) Renderizar Puertas E1 a E7 con marco y paneles de vidrio en 3D
+  STATIC_STRUCTURES.doors.forEach(door => {
+    const doorG = new THREE.Group();
+    doorG.position.set(door.x, 0.05, door.y);
+    doorG.rotation.y = -door.angle * Math.PI / 180;
+    
+    const frameColor = isBw ? 0x000000 : (isCadD ? 0x00ff00 : 0x3e2723);
+    const frameMat = new THREE.MeshStandardMaterial({ color: frameColor, roughness: 0.6, metalness: 0.1 });
+    
+    // Poste Izquierdo
+    const postL = new THREE.Mesh(new THREE.BoxGeometry(0.1, 2.4, 0.1), frameMat);
+    postL.position.set(-door.w/2 + 0.05, 1.2, 0);
+    postL.castShadow = true;
+    doorG.add(postL);
+
+    // Poste Derecho
+    const postR = new THREE.Mesh(new THREE.BoxGeometry(0.1, 2.4, 0.1), frameMat);
+    postR.position.set(door.w/2 - 0.05, 1.2, 0);
+    postR.castShadow = true;
+    doorG.add(postR);
+
+    // Viga superior
+    const beam = new THREE.Mesh(new THREE.BoxGeometry(door.w, 0.1, 0.1), frameMat);
+    beam.position.set(0, 2.35, 0);
+    beam.castShadow = true;
+    doorG.add(beam);
+
+    if (!isBw) {
+      // Panel de cristal
+      const glassGeom = new THREE.BoxGeometry(door.w - 0.15, 2.3, 0.02);
+      const glassMat = new THREE.MeshStandardMaterial({
+        color: 0xbae6fd,
+        transparent: true,
+        opacity: 0.45,
+        roughness: 0.1,
+        metalness: 0.9
+      });
+      const glass = new THREE.Mesh(glassGeom, glassMat);
+      glass.position.set(0, 1.15, 0);
+      doorG.add(glass);
+
+      // Jaladeras de la puerta (doradas)
+      const handleGeom = new THREE.CylinderGeometry(0.015, 0.015, 0.4, 8);
+      const handleMat = new THREE.MeshStandardMaterial({ color: 0xd4af37, metalness: 0.8, roughness: 0.2 });
+      
+      const handleL = new THREE.Mesh(handleGeom, handleMat);
+      handleL.position.set(-0.08, 1.1, 0.02);
+      doorG.add(handleL);
+
+      const handleR = new THREE.Mesh(handleGeom, handleMat);
+      handleR.position.set(0.08, 1.1, 0.02);
+      doorG.add(handleR);
+    }
+    
+    scene.add(doorG);
+  });
 }
 
 /* --- CREAR ARO DE SELECCIÓN --- */
