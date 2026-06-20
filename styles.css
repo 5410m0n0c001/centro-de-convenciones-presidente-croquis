@@ -7,23 +7,23 @@
 
 /* --- SYSTEM TOKENS & VARIABLE ROOTS --- */
 :root {
-  --bg-dark: #090d16;
-  --bg-panel: rgba(17, 24, 39, 0.75);
-  --bg-panel-hover: rgba(31, 41, 55, 0.85);
+  --bg-dark: #1F1F1F;      /* Negro Profundo */
+  --bg-panel: rgba(31, 31, 31, 0.75);
+  --bg-panel-hover: rgba(45, 45, 45, 0.85);
   --border-color: rgba(255, 255, 255, 0.08);
-  --border-focus: #d4af37;
+  --border-focus: #C9A96E;
   
   --text-main: #f3f4f6;
-  --text-muted: #9ca3af;
+  --text-muted: #6D6D6D;   /* Gris Suave */
   --text-dark: #111827;
   
-  --accent: #10b981;      /* Esmeralda */
-  --accent-hover: #059669;
-  --gold: #d4af37;        /* Oro */
-  --gold-hover: #bfa02c;
+  --accent: #F65C7A;      /* Rosa Principal */
+  --accent-hover: #e04b6a;
+  --gold: #C9A96E;        /* Oro Noble */
+  --gold-hover: #bda062;
   --danger: #ef4444;
   --danger-hover: #dc2626;
-  --vip-color: #d4af37;
+  --vip-color: #C9A96E;
   --reserved-color: #ef4444;
 
   --font-family: 'Inter', system-ui, -apple-system, sans-serif;

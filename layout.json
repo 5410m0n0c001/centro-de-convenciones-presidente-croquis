@@ -131,7 +131,7 @@
     "h": 0.3,
     "shape": "rectangle",
     "rotation": 270,
-    "color": "#d4af37",
+    "color": "#C9A96E",
     "editable": true,
     "removable": true
   },
@@ -145,7 +145,7 @@
     "h": 0.3,
     "shape": "rectangle",
     "rotation": 270,
-    "color": "#d4af37",
+    "color": "#C9A96E",
     "editable": true,
     "removable": true
   },
@@ -159,7 +159,7 @@
     "h": 0.3,
     "shape": "rectangle",
     "rotation": 180,
-    "color": "#d4af37",
+    "color": "#C9A96E",
     "editable": true,
     "removable": true
   },
@@ -173,7 +173,7 @@
     "h": 0.3,
     "shape": "rectangle",
     "rotation": 180,
-    "color": "#d4af37",
+    "color": "#C9A96E",
     "editable": true,
     "removable": true
   },
@@ -187,7 +187,7 @@
     "h": 0.3,
     "shape": "rectangle",
     "rotation": 180,
-    "color": "#d4af37",
+    "color": "#C9A96E",
     "editable": true,
     "removable": true
   },
@@ -201,7 +201,7 @@
     "h": 0.3,
     "shape": "rectangle",
     "rotation": 90,
-    "color": "#d4af37",
+    "color": "#C9A96E",
     "editable": true,
     "removable": true
   },
@@ -215,7 +215,7 @@
     "h": 0.3,
     "shape": "rectangle",
     "rotation": 90,
-    "color": "#d4af37",
+    "color": "#C9A96E",
     "editable": true,
     "removable": true
   },
