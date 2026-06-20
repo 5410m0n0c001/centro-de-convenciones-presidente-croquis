@@ -889,6 +889,18 @@ function renderStage2D(group, elem) {
 
 /* --- EVENTOS DE ARRASTRE DE ELEMENTOS --- */
 function setupDragEvents(group, elem) {
+  if (window.isReadOnly) {
+    const startDragReadOnly = (evt) => {
+      evt.stopPropagation();
+      selectedElementId = elem.id;
+      selectElement2D(elem.id);
+      if (onSelectedCallback) onSelectedCallback(elem, false);
+    };
+    group.addEventListener("mousedown", startDragReadOnly);
+    group.addEventListener("touchstart", startDragReadOnly);
+    return;
+  }
+
   const startDrag = (evt) => {
     evt.stopPropagation();
     let isTouch = evt.type.startsWith("touch");

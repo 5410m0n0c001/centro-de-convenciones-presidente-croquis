@@ -155,6 +155,7 @@ function setupUI() {
 
   // Keyboard Shortcuts (R to rotate, Delete/Backspace to delete)
   document.addEventListener("keydown", (e) => {
+    if (window.isReadOnly) return;
     // Avoid triggering shortcuts when typing inside form fields
     const activeEl = document.activeElement;
     if (activeEl && (activeEl.tagName === "INPUT" || activeEl.tagName === "TEXTAREA" || activeEl.tagName === "SELECT")) {
@@ -216,6 +217,7 @@ function populateToolbox() {
 
 /* --- OPERACIONES CON ELEMENTOS (CREAR, CLONAR, ELIMINAR) --- */
 function addNewElement(tmpl) {
+  if (window.isReadOnly) return;
   const timestamp = Date.now();
   const newId = `${tmpl.type}-${timestamp}`;
 
@@ -327,7 +329,7 @@ function handleElementSelected(elem, openPanel = true) {
 
   populateInspector(elem);
   
-  if (openPanel) {
+  if (openPanel && !window.isReadOnly) {
     const drawer = document.getElementById("detail-drawer");
     if (drawer) drawer.classList.add("open");
   }
@@ -447,8 +449,11 @@ function setupControlListeners() {
   const btnShare = document.getElementById("btn-share");
   if (btnShare) {
     btnShare.addEventListener("click", () => {
-      const url = new URL(window.location.href);
-      navigator.clipboard.writeText(url.href).then(() => {
+      let shareUrl = window.location.href;
+      if (shareUrl.startsWith('file://') || shareUrl.includes('localhost') || shareUrl.includes('127.0.0.1')) {
+        shareUrl = 'https://5410m0n0c001.github.io/centro-de-convenciones-presidente-croquis/';
+      }
+      navigator.clipboard.writeText(shareUrl).then(() => {
         showToast("Enlace de diseño copiado al portapapeles");
       });
     });
