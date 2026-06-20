@@ -30,6 +30,84 @@ const COLORS = {
   grass: 0x1b4332           // Césped
 };
 
+// Dictionary of mapped vendor categories/services
+const VENDOR_SERVICES = {
+  "primavera events group": "Organización y Banquetes",
+  "scanner dj": "Música y Audio",
+  "abidecora": "Florería y Decoración",
+  "abigail jimenez sandoval": "Florería y Decoración",
+  "dance queens": "Danza y Performance",
+  "academia de baile dance queens": "Danza y Performance",
+  "andrea lozano beauty salon": "Belleza y Maquillaje",
+  "andrea lozano": "Belleza y Maquillaje",
+  "corona music": "Música y Audio",
+  "kataleya florist": "Florería y Decoración",
+  "la princesa": "Alimentos y Bebidas",
+  "la princesa paleteria": "Alimentos y Bebidas",
+  "licky baut photo": "Fotografía y Video",
+  "mariachi xiuhtepetl": "Música y Audio",
+  "tequila presonalizado don ramón": "Alimentos y Bebidas",
+  "tequila personalizado don ramón": "Alimentos y Bebidas",
+  "tequila personalizado don ramon": "Alimentos y Bebidas",
+  "tequila presonalizado don ramon": "Alimentos y Bebidas"
+};
+
+function create3DLabel(text, subtext = "", colorHex = "#d4af37", bgColor = "rgba(15, 23, 42, 0.85)") {
+  const canvas = document.createElement("canvas");
+  canvas.width = 512;
+  canvas.height = subtext ? 128 : 64;
+  const ctx = canvas.getContext("2d");
+
+  // Round rect background
+  ctx.fillStyle = bgColor;
+  ctx.strokeStyle = colorHex;
+  ctx.lineWidth = 4;
+  
+  // Draw rounded rectangle
+  const r = 16;
+  const w = 512;
+  const h = canvas.height;
+  ctx.beginPath();
+  ctx.moveTo(r, 2);
+  ctx.lineTo(w - r, 2);
+  ctx.quadraticCurveTo(w - 2, 2, w - 2, r);
+  ctx.lineTo(w - 2, h - r);
+  ctx.quadraticCurveTo(w - 2, h - 2, w - r, h - 2);
+  ctx.lineTo(r, h - 2);
+  ctx.quadraticCurveTo(2, h - 2, 2, h - r);
+  ctx.lineTo(2, r);
+  ctx.quadraticCurveTo(2, 2, r, 2);
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+
+  // Draw main text
+  ctx.fillStyle = "#ffffff";
+  ctx.font = "bold 24px Arial, sans-serif";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  
+  if (subtext) {
+    ctx.fillText(text, 256, 40);
+    // Draw subtext
+    ctx.fillStyle = colorHex;
+    ctx.font = "bold 18px Arial, sans-serif";
+    ctx.fillText(subtext, 256, 88);
+  } else {
+    ctx.fillText(text, 256, 32);
+  }
+
+  const texture = new THREE.CanvasTexture(canvas);
+  const spriteMaterial = new THREE.SpriteMaterial({ 
+    map: texture, 
+    transparent: true 
+  });
+  
+  const sprite = new THREE.Sprite(spriteMaterial);
+  sprite.scale.set(subtext ? 6.0 : 4.5, subtext ? 1.5 : 0.5625, 1);
+  return sprite;
+}
+
 export function init3D(containerElement, initialElements, themeName = 'premium') {
   container = containerElement;
   currentElementsData = initialElements;
@@ -471,6 +549,28 @@ function build3DStand(group, elem) {
   const textPlane = new THREE.Mesh(new THREE.PlaneGeometry(elem.w * 0.9, 0.3), textMat);
   textPlane.position.set(0, 2.3, elem.h/2 + 0.01);
   group.add(textPlane);
+
+  // Floating 3D Label
+  let exhibName = elem.exhibitor || elem.name;
+  let exhibService = "";
+  if (exhibName && exhibName !== "Nuevo Expositor" && exhibName !== "n°1" && exhibName !== "RED") {
+    const key = exhibName.toLowerCase().trim();
+    if (VENDOR_SERVICES[key]) {
+      exhibService = VENDOR_SERVICES[key];
+    } else if (elem.name && elem.name !== exhibName && !elem.name.startsWith("Stand")) {
+      exhibService = elem.name;
+    }
+  } else {
+    exhibName = elem.name;
+    const key = exhibName.toLowerCase().trim();
+    if (VENDOR_SERVICES[key]) {
+      exhibService = VENDOR_SERVICES[key];
+    }
+  }
+
+  const labelSprite = create3DLabel(exhibName, exhibService, elem.color || "#d4af37");
+  labelSprite.position.set(0, 3.8, 0);
+  group.add(labelSprite);
 }
 
 // 2. Mesas
@@ -1208,6 +1308,11 @@ function build3DSalon(group, elem) {
   salonFloor.position.y = 0.025;
   salonFloor.receiveShadow = true;
   group.add(salonFloor);
+
+  // Area Label
+  const label = create3DLabel("SALÓN TECHADO", "Área Principal de Expositores", "#f05a7e");
+  label.position.set(0, 5.0, 0);
+  group.add(label);
 }
 
 function build3DGarden(group, elem) {
@@ -1259,6 +1364,11 @@ function build3DGarden(group, elem) {
   ftGroup.add(jet);
   
   group.add(ftGroup);
+
+  // Area Label
+  const label = create3DLabel("ÁREA DE JARDÍN", "Exhibición Exterior", "#10b981");
+  label.position.set(0, 5.0, 0);
+  group.add(label);
 }
 
 function build3DEntrance(group, elem) {
@@ -1313,6 +1423,11 @@ function build3DEntrance(group, elem) {
   courtyard.position.set(-2.0, 0.005, 2.0);
   courtyard.receiveShadow = true;
   group.add(courtyard);
+
+  // Area Label
+  const label = create3DLabel("ACCESO PRINCIPAL", "Entrada y Registro", "#94a3b8");
+  label.position.set(0, 4.0, 0);
+  group.add(label);
 }
 
 function build3DBathroom(group, elem) {
@@ -1363,6 +1478,11 @@ function build3DBathroom(group, elem) {
   
   signPlane.position.set(0, 4.5, elem.h / 2 + 0.01);
   group.add(signPlane);
+
+  // Area Label
+  const label = create3DLabel("SERVICIOS SANITARIOS", "Sanitarios de la Expo", "#0ea5e9");
+  label.position.set(0, 7.0, 0);
+  group.add(label);
 }
 
 function build3DStage(group, elem) {
@@ -1418,4 +1538,9 @@ function build3DStage(group, elem) {
   bar.receiveShadow = true;
   bar.castShadow = true;
   group.add(bar);
+
+  // Area Label
+  const label = create3DLabel("ESCENARIO Y PASARELA", "Presentaciones en Vivo", "#c084fc");
+  label.position.set(0, 4.0, -elem.h / 4);
+  group.add(label);
 }
