@@ -5,9 +5,9 @@
  * el panel de control de temas, la caja de herramientas y el inspector.
  */
 
-import { INITIAL_ELEMENTS, TOOLBOX_TEMPLATES, CANVAS_WIDTH, CANVAS_HEIGHT } from "./elements.js";
-import { init2D, updateElements2D, selectElement2D, setGridSnap, zoomIn, zoomOut, resetZoom } from "./editor2d.js";
-import { init3D, destroy3D, syncWithData, selectElement3D, resetCamera3D } from "./visualizer3d.js";
+import { INITIAL_ELEMENTS, TOOLBOX_TEMPLATES, CANVAS_WIDTH, CANVAS_HEIGHT } from "./elements.js?v=6.0";
+import { init2D, updateElements2D, selectElement2D, setGridSnap, zoomIn, zoomOut, resetZoom } from "./editor2d.js?v=6.0";
+import { init3D, destroy3D, syncWithData, selectElement3D, resetCamera3D } from "./visualizer3d.js?v=6.0";
 
 // Estado global de la aplicación
 const state = {

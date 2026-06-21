@@ -5,7 +5,7 @@
  * Construye modelos tridimensionales procedurales de gala para el Centro de Convenciones Presidente.
  */
 
-import { CANVAS_WIDTH, CANVAS_HEIGHT } from "./elements.js";
+import { CANVAS_WIDTH, CANVAS_HEIGHT } from "./elements.js?v=6.0";
 
 let scene, camera, renderer, controls;
 let container = null;
@@ -52,7 +52,7 @@ const VENDOR_SERVICES = {
   "tequila presonalizado don ramon": "Alimentos y Bebidas"
 };
 
-function create3DLabel(text, subtext = "", colorHex = "#d4af37", bgColor = "rgba(15, 23, 42, 0.85)") {
+function create3DLabel(text, subtext = "", colorHex = "#d4af37", bgColor = "rgba(15, 23, 42, 0.85)", heightOffset = 3.8) {
   const canvas = document.createElement("canvas");
   canvas.width = 512;
   canvas.height = subtext ? 128 : 64;
@@ -81,17 +81,28 @@ function create3DLabel(text, subtext = "", colorHex = "#d4af37", bgColor = "rgba
   ctx.fill();
   ctx.stroke();
 
-  // Draw main text
+  // Draw main text with auto-scaling font size
   ctx.fillStyle = "#ffffff";
-  ctx.font = "bold 24px Arial, sans-serif";
+  let mainFontSize = 32;
+  ctx.font = `bold ${mainFontSize}px Arial, sans-serif`;
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
   
+  while (ctx.measureText(text).width > 480 && mainFontSize > 16) {
+    mainFontSize -= 2;
+    ctx.font = `bold ${mainFontSize}px Arial, sans-serif`;
+  }
+  
   if (subtext) {
-    ctx.fillText(text, 256, 40);
-    // Draw subtext
+    ctx.fillText(text, 256, 42);
+    // Draw subtext with auto-scaling font size
     ctx.fillStyle = colorHex;
-    ctx.font = "bold 18px Arial, sans-serif";
+    let subFontSize = 24;
+    ctx.font = `bold ${subFontSize}px Arial, sans-serif`;
+    while (ctx.measureText(subtext).width > 480 && subFontSize > 12) {
+      subFontSize -= 2;
+      ctx.font = `bold ${subFontSize}px Arial, sans-serif`;
+    }
     ctx.fillText(subtext, 256, 88);
   } else {
     ctx.fillText(text, 256, 32);
@@ -100,12 +111,60 @@ function create3DLabel(text, subtext = "", colorHex = "#d4af37", bgColor = "rgba
   const texture = new THREE.CanvasTexture(canvas);
   const spriteMaterial = new THREE.SpriteMaterial({ 
     map: texture, 
-    transparent: true 
+    transparent: true,
+    depthTest: true,
+    depthWrite: false
   });
   
   const sprite = new THREE.Sprite(spriteMaterial);
-  sprite.scale.set(subtext ? 6.0 : 4.5, subtext ? 1.5 : 0.5625, 1);
-  return sprite;
+  const scaleX = subtext ? 7.5 : 6.0;
+  const scaleY = subtext ? 1.875 : 0.75;
+  sprite.scale.set(scaleX, scaleY, 1);
+  
+  // Tag sprite for dynamic scaling in animate loop
+  sprite.is3DLabel = true;
+  sprite.userData = {
+    baseScaleX: scaleX,
+    baseScaleY: scaleY,
+    baseScaleZ: 1,
+    heightOffset: heightOffset
+  };
+
+  // Group to combine sprite + pointer line + ground dot
+  const labelGroup = new THREE.Group();
+  labelGroup.add(sprite);
+
+  // Line pointing down to the ground
+  let colorVal = 0xd4af37;
+  if (typeof colorHex === "string" && colorHex.startsWith("#")) {
+    colorVal = parseInt(colorHex.replace("#", "0x"));
+  }
+
+  const points = [];
+  points.push(new THREE.Vector3(0, -heightOffset + 0.1, 0));
+  points.push(new THREE.Vector3(0, -0.4, 0));
+  
+  const lineGeom = new THREE.BufferGeometry().setFromPoints(points);
+  const lineMat = new THREE.LineBasicMaterial({
+    color: colorVal,
+    transparent: true,
+    opacity: 0.7
+  });
+  const line = new THREE.Line(lineGeom, lineMat);
+  labelGroup.add(line);
+
+  // Ground dot indicator
+  const dotGeom = new THREE.SphereGeometry(0.12, 8, 8);
+  const dotMat = new THREE.MeshBasicMaterial({
+    color: colorVal,
+    transparent: true,
+    opacity: 0.9
+  });
+  const dot = new THREE.Mesh(dotGeom, dotMat);
+  dot.position.set(0, -heightOffset + 0.1, 0);
+  labelGroup.add(dot);
+
+  return labelGroup;
 }
 
 export function init3D(containerElement, initialElements, themeName = 'premium') {
@@ -364,6 +423,21 @@ function animate() {
   }
   
   if (renderer && scene && camera) {
+    // Dynamic scaling of labels based on camera distance
+    scene.traverse((object) => {
+      if (object.is3DLabel) {
+        const worldPos = new THREE.Vector3();
+        object.getWorldPosition(worldPos);
+        const dist = camera.position.distanceTo(worldPos);
+        // Scale factor: grows as camera gets further, clamped between 0.6 and 4.5
+        const scaleFactor = Math.max(0.6, Math.min(4.5, dist / 30.0));
+        
+        const baseScaleX = object.userData.baseScaleX || 4.5;
+        const baseScaleY = object.userData.baseScaleY || 0.5625;
+        object.scale.set(baseScaleX * scaleFactor, baseScaleY * scaleFactor, 1);
+      }
+    });
+    
     renderer.render(scene, camera);
   }
 }
@@ -846,6 +920,14 @@ function build3DMirror(group, elem) {
   const glass = new THREE.Mesh(new THREE.BoxGeometry(elem.w * 0.88, 1.8, elem.h + 0.02), glassMat);
   glass.position.y = 1.0;
   group.add(glass);
+
+  // Floating 3D Label
+  let exhibName = elem.exhibitor || elem.name || "Espejo Mágico";
+  let exhibService = (elem.exhibitor && elem.name) ? elem.name : "Cabina de Fotos";
+  if (exhibName === "Nuevo Expositor") exhibName = "Espejo Mágico";
+  const labelSprite = create3DLabel(exhibName, exhibService, elem.color || "#d4af37", "rgba(15, 23, 42, 0.85)", 3.2);
+  labelSprite.position.set(0, 3.2, 0);
+  group.add(labelSprite);
 }
 
 // 6. Cabina Fotos
@@ -867,6 +949,23 @@ function build3DPhotobooth(group, elem) {
   lens.rotation.x = Math.PI / 2;
   lens.position.set(0, 1.7, -elem.h/2 - 0.01);
   group.add(lens);
+
+  // Floating 3D Label
+  let boothName = elem.exhibitor || elem.name || "Cabina de Fotos";
+  let boothSub = "";
+  if (boothName === "Nuevo Expositor") boothName = "Cabina de Fotos";
+  if (boothName !== elem.name && elem.name) {
+    boothSub = elem.name;
+  } else {
+    boothSub = boothName.toLowerCase().includes("360") ? "Cabina 360" : "Cabina de Fotos";
+    if (boothName.toLowerCase().includes("360")) {
+      boothName = "Cabina 360";
+      boothSub = "Cabina de Fotos";
+    }
+  }
+  const labelSprite = create3DLabel(boothName, boothSub, elem.color || "#d4af37", "rgba(15, 23, 42, 0.85)", 3.2);
+  labelSprite.position.set(0, 3.2, 0);
+  group.add(labelSprite);
 }
 
 // 7. DJ
@@ -898,6 +997,14 @@ function build3DDJ(group, elem) {
   const spkR = spkL.clone();
   spkR.position.x = elem.w/2 + 0.25;
   group.add(spkR);
+
+  // Floating 3D Label
+  let exhibName = elem.exhibitor || elem.name || "Cabina DJ";
+  let exhibService = (elem.exhibitor && elem.name) ? elem.name : "DJ / Audio";
+  if (exhibName === "Nuevo Expositor") exhibName = "Cabina DJ";
+  const labelSprite = create3DLabel(exhibName, exhibService, elem.color || "#d4af37", "rgba(15, 23, 42, 0.85)", 3.2);
+  labelSprite.position.set(0, 3.2, 0);
+  group.add(labelSprite);
 }
 
 // 8. Arbusto
@@ -1118,6 +1225,16 @@ function build3DDoor(group, elem) {
   const handleR = new THREE.Mesh(handleGeom, handleMat);
   handleR.position.set(0.08, 1.1, 0.02);
   group.add(handleR);
+
+  // Floating label for door (Entrance/Acceso)
+  let doorName = elem.name || "Puerta";
+  let doorSubtext = "Entrada";
+  if (doorName.toLowerCase().includes("rampa")) {
+    doorSubtext = "Entrada / Rampa";
+  }
+  const labelSprite = create3DLabel(doorName, doorSubtext, "#94a3b8", "rgba(15, 23, 42, 0.85)", 3.2);
+  labelSprite.position.set(0, 3.2, 0);
+  group.add(labelSprite);
 }
 
 function clearWalls3D() {
@@ -1310,7 +1427,7 @@ function build3DSalon(group, elem) {
   group.add(salonFloor);
 
   // Area Label
-  const label = create3DLabel("SALÓN TECHADO", "Área Principal de Expositores", "#f05a7e");
+  const label = create3DLabel("SALÓN TECHADO", "Área Principal de Expositores", "#f05a7e", "rgba(15, 23, 42, 0.85)", 5.0);
   label.position.set(0, 5.0, 0);
   group.add(label);
 }
@@ -1366,7 +1483,7 @@ function build3DGarden(group, elem) {
   group.add(ftGroup);
 
   // Area Label
-  const label = create3DLabel("ÁREA DE JARDÍN", "Exhibición Exterior", "#10b981");
+  const label = create3DLabel("ÁREA DE JARDÍN", "Exhibición Exterior", "#10b981", "rgba(15, 23, 42, 0.85)", 5.0);
   label.position.set(0, 5.0, 0);
   group.add(label);
 }
@@ -1425,7 +1542,7 @@ function build3DEntrance(group, elem) {
   group.add(courtyard);
 
   // Area Label
-  const label = create3DLabel("ACCESO PRINCIPAL", "Entrada y Registro", "#94a3b8");
+  const label = create3DLabel("ACCESO PRINCIPAL", "Entrada y Registro", "#94a3b8", "rgba(15, 23, 42, 0.85)", 4.0);
   label.position.set(0, 4.0, 0);
   group.add(label);
 }
@@ -1480,7 +1597,7 @@ function build3DBathroom(group, elem) {
   group.add(signPlane);
 
   // Area Label
-  const label = create3DLabel("SERVICIOS SANITARIOS", "Sanitarios de la Expo", "#0ea5e9");
+  const label = create3DLabel("SERVICIOS SANITARIOS", "Sanitarios de la Expo", "#0ea5e9", "rgba(15, 23, 42, 0.85)", 7.0);
   label.position.set(0, 7.0, 0);
   group.add(label);
 }
@@ -1540,7 +1657,7 @@ function build3DStage(group, elem) {
   group.add(bar);
 
   // Area Label
-  const label = create3DLabel("ESCENARIO Y PASARELA", "Presentaciones en Vivo", "#c084fc");
+  const label = create3DLabel("ESCENARIO Y PASARELA", "Presentaciones en Vivo", "#c084fc", "rgba(15, 23, 42, 0.85)", 4.0);
   label.position.set(0, 4.0, -elem.h / 4);
   group.add(label);
 }
