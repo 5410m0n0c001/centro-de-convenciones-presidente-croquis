@@ -13,7 +13,7 @@ import { init3D, destroy3D, syncWithData, selectElement3D, resetCamera3D } from 
 const state = {
   elements: [],
   selectedElement: null,
-  activeView: "2d", // "2d" o "3d"
+  activeView: "3d", // "2d" o "3d"
   useGrid: true,
   currentTheme: "premium"
 };
@@ -84,6 +84,26 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // Sincronizar recuentos métricos
   updateMetrics();
+
+  // Si la vista inicial es 3D, activarla programáticamente
+  if (state.activeView === "3d") {
+    const btn2d = document.getElementById("btn-view-2d");
+    const btn3d = document.getElementById("btn-view-3d");
+    const container2d = document.getElementById("container-2d");
+    const container3d = document.getElementById("container-3d");
+    
+    if (btn2d && btn3d && container2d && container3d) {
+      btn3d.classList.add("active");
+      btn2d.classList.remove("active");
+      container3d.classList.add("active");
+      container2d.classList.remove("active");
+      
+      init3D(container3d, state.elements, state.currentTheme);
+      if (state.selectedElement) {
+        selectElement3D(state.selectedElement.id);
+      }
+    }
+  }
 });
 
 /* --- CONFIGURACIÓN DE NAVEGACIÓN Y MENÚS DE LA UI --- */
